@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# Virtual environments (uv / venv)
+.venv/
+venv/
+env/
+.env
+
+# uv
+# uv.lock is intentionally committed for reproducibility
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Distribution / packaging
+*.manifest
+*.spec
+pip-wheel-metadata/
+share/python-wheels/
+
+# Test / coverage
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+htmlcov/
+.pytest_cache/
+.hypothesis/
+
+# Type checkers
+.mypy_cache/
+.dmypy.json
+.pyright/
+.ruff_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs (general)
+*.log.bak
+logs/
+
+# Env files
+.env
+.env.*
+!.env.example
