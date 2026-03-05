@@ -1,44 +1,40 @@
-# load the processed data from the previous step
+library(dplyr)
+
 processed_data <- read.csv("data/processed/combined_data.csv")
 
-# find number of unique events in the data
+# ── Unique events (pre-removal audit) ────────────────────────────────────────
 num_events <- length(unique(processed_data$Event))
 print(paste("Number of unique events in the data:", num_events))
 
-# the 12 unique events are:
 unique_events <- unique(processed_data$Event)
 print("The unique events are:")
 print(unique_events)
 
-# event counts for each unique event
 event_counts <- table(processed_data$Event)
 print("Event counts for each unique event:")
 print(event_counts)
 
+# ── Drop practice rows AND gaptime in one pass ───────────────────────────────
+# gaptime = ISI timing metadata only; carries no response fields, never used downstream
 processed_data <- processed_data[!grepl("^Practice", processed_data$Event), ]
+processed_data <- processed_data[processed_data$Event != "gap_time", ]
 
-cat("Remaining events after practice removal:\n")
+cat("Remaining events after practice + gaptime removal:\n")
 event_counts <- table(processed_data$Event)
 print(event_counts)
 
-# saving this practice_removed data for later use
 write.csv(processed_data, "data/processed/cleaned_data.csv", row.names = FALSE)
 
-cat(sprintf("\nRows remaining: %d  (removed %d practice rows)\n", nrow(processed_data), 81329 - nrow(processed_data)))
+cat(sprintf(
+  "\nRows remaining: %d  (removed %d practice + gaptime rows)\n",
+  nrow(processed_data), 81329 - nrow(processed_data)
+))
 
-get_count <- function(event_name) {
-  event_counts[event_name]
-}
+# ── Helper ───────────────────────────────────────────────────────────────────
+get_count <- function(event_name) event_counts[event_name]
 
-# Cross verifying study claims
-# Cross-verification using known experimental invariants
-
-cat("Invariant 1: gap_time should equal Sentence shown (one ISI per sentence)\n")
-cat(sprintf("  Sentence shown : %d\n", get_count("Sentence shown")))
-cat(sprintf("  gap_time       : %d\n", get_count("gap_time")))
-cat(sprintf("  Match: %s\n\n",
-    get_count("Sentence shown") == get_count("gap_time")))
-
+# ── Cross-verification: experimental invariants ───────────────────────────────
+# Invariant 1 (gaptime == Sentence shown) REMOVED — gaptime no longer in data
 
 cat("Invariant 2: Rest Phase started should be exactly 2 per participant\n")
 rest_per_p <- processed_data |>
@@ -55,16 +51,13 @@ if (nrow(off_rest) == 0) {
   cat("\n")
 }
 
-
 cat("Invariant 3: IR pressed == WR pressed (WR always follows IR)\n")
 cat(sprintf("  IR pressed : %d\n", get_count("IR pressed")))
 cat(sprintf("  WR pressed : %d\n", get_count("WR pressed")))
 cat(sprintf("  Match: %s\n\n",
     get_count("IR pressed") == get_count("WR pressed")))
 
-
 cat("Invariant 4: Target probes should be exactly 48 per participant\n")
-# isTarget and isRepeat are stored as TRUE (logical) after read.csv with na.strings
 target_probes <- processed_data |>
   dplyr::filter(
     Event    == "Sentence shown",
@@ -75,7 +68,7 @@ target_probes <- processed_data |>
 
 cat(sprintf("  Total target probe rows : %d  (expected %d)\n",
     sum(target_probes$n_probes), 114 * 48))
-cat(sprintf("  Per-participant summary:\n"))
+cat("  Per-participant summary:\n")
 print(summary(target_probes$n_probes))
 
 off_probes <- target_probes[target_probes$n_probes != 48, ]
@@ -87,13 +80,12 @@ if (nrow(off_probes) == 0) {
   cat("\n")
 }
 
-
 cat("Invariant 5: Target encodings should also be exactly 48 per participant\n")
 target_enc <- processed_data |>
   dplyr::filter(
     Event    == "Sentence shown",
     isTarget == TRUE,
-    is.na(isRepeat)          # first showing = isRepeat is NA (not set)
+    is.na(isRepeat)
   ) |>
   dplyr::count(participant_id, name = "n_encodings")
 
@@ -106,9 +98,7 @@ if (nrow(off_enc) == 0) {
   cat("\n")
 }
 
-
 cat("Invariant 6: IR on target probes should be <= 48 per participant\n")
-# Anything over 48 means false alarms bled into target-flagged rows (shouldn't happen)
 ir_on_probes <- processed_data |>
   dplyr::filter(
     Event    == "IR pressed",
@@ -122,13 +112,11 @@ cat(sprintf("  Min: %d  |  Max: %d  |  Median: %.0f\n",
     max(ir_on_probes$n_ir_on_probes),
     median(ir_on_probes$n_ir_on_probes)))
 
-# Missed = 48 - n_ir_on_probes per participant
 ir_on_probes$n_missed <- 48 - ir_on_probes$n_ir_on_probes
 cat(sprintf("  Total missed IR across all participants: %d\n",
     sum(ir_on_probes$n_missed)))
 cat(sprintf("  Overall miss rate: %.1f%%\n\n",
     mean(ir_on_probes$n_missed / 48) * 100))
-
 
 cat("Invariant 7: Sentence shown per participant should all be 222\n")
 shown_per_p <- processed_data |>
@@ -143,13 +131,6 @@ if (nrow(off_shown) == 0) {
   cat("\n")
 }
 
-# adding block IDs to the data for later use
-# block 0 = practice (already removed)
-# blocks 1-3 = each block has 16 sentences
-
-# Walk rows in order within each participant.
-# Each "Rest Phase started" row increments the block counter.
-# Block starts at 1 (practice already removed).
 assign_block_ids <- function(events) {
   block_vec <- integer(length(events))
   blk <- 1L
@@ -165,7 +146,7 @@ processed_data <- processed_data |>
   dplyr::mutate(block_id = assign_block_ids(Event)) |>
   dplyr::ungroup()
 
-# Sanity check: every participant should have exactly 3 blocks
+# Sanity: exactly 3 blocks per participant
 block_check <- processed_data |>
   dplyr::filter(Event != "Rest Phase started") |>
   dplyr::group_by(participant_id) |>
@@ -179,7 +160,7 @@ if (nrow(off_blocks) == 0) {
   print(off_blocks)
 }
 
-# Sanity check: each block should have exactly 16 target probes
+# Sanity: 16 target probes per block
 probes_per_block <- processed_data |>
   dplyr::filter(Event == "Sentence shown", isTarget == TRUE, isRepeat == TRUE) |>
   dplyr::count(participant_id, block_id, name = "n_probes")
@@ -196,6 +177,8 @@ if (nrow(off_block_probes) == 0) {
 }
 
 processed_data <- processed_data[processed_data$Event != "Rest Phase started", ]
-cat(sprintf("Rows after dropping Rest Phase: %d  (removed %d rows)\n", nrow(processed_data), 228))  # 2 rest rows × 114 participants
+cat(sprintf("Rows after dropping Rest Phase: %d  (removed %d rows)\n",
+    nrow(processed_data), 228))  # 2 rest rows × 114 participants
+
 write.csv(processed_data, "data/processed/cleaned_data.csv", row.names = FALSE)
 cat("Saved updated cleaned_data.csv with block_id column.\n")

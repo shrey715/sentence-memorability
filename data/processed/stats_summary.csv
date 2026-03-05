@@ -1,0 +1,6 @@
+"Test","Statistic","df","p_value","Sig"
+"KW: IR × Noun Condition",8.66,3,0.0342,"✓"
+"KW: WR × Noun Condition",1.981,3,0.5763,""
+"WSR: IR Active vs. Passive",1653.5,NA,0.4458,""
+"WSR: WR Active vs. Passive",3279,NA,0.1128,""
+"KW: IR × Block",2.771,2,0.2502,""
