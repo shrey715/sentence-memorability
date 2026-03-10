@@ -3,13 +3,12 @@ options(scipen = 999)
 
 # ── Output directories ────────────────────────────────────────────────────────
 run_timestamp <- format(Sys.time(), "%Y-%m-%d_%H-%M-%S")
-log_dir  <- "outputs/logs"
+log_dir <- "outputs/logs"
 stat_dir <- "outputs/stats"
-dir.create(log_dir,  showWarnings = FALSE, recursive = TRUE)
+dir.create(log_dir, showWarnings = FALSE, recursive = TRUE)
 dir.create(stat_dir, showWarnings = FALSE, recursive = TRUE)
 
 # ── Dual-output sink: console + timestamped log file ─────────────────────────
-# split = TRUE means output goes to BOTH the log file and the console
 log_file <- file.path(log_dir, paste0("pipeline_run_", run_timestamp, ".log"))
 .log_con <- file(log_file, open = "wt")
 sink(.log_con, type = "output", split = TRUE)
@@ -31,25 +30,31 @@ source("src/preprocessing/03_validate_participants.R")
 source("src/preprocessing/04_finalize_dataset.R")
 
 cat("\n\n================================================================\n")
-cat("  PHASE 2: Descriptives & Normality\n")
+cat("  PHASE 2: Data Integrity Checks\n")
 cat("================================================================\n")
-source("src/analysis/stats/results_stats.R")
+source("src/analysis/visualization/06a_data_checks.R")
 
 cat("\n\n================================================================\n")
-cat("  PHASE 3: Inferential Statistics\n")
+cat("  PHASE 3: Compute Scores & Descriptives\n")
 cat("================================================================\n")
-source("src/analysis/stats/05_statistical_tests.R")
+source("src/analysis/stats/05a_compute_scores.R")
 
 cat("\n\n================================================================\n")
-cat("  PHASE 4: Data Visualization\n")
+cat("  PHASE 4: Inferential Statistics\n")
 cat("================================================================\n")
-source("src/analysis/visualization/06_generate_plots.R")
+source("src/analysis/stats/05b_statistical_tests.R")
+
+cat("\n\n================================================================\n")
+cat("  PHASE 5: Result Visualizations\n")
+cat("================================================================\n")
+source("src/analysis/visualization/06b_results_plots.R")
 
 cat("\n\n================================================================\n")
 cat(sprintf("  Run completed : %s\n", format(Sys.time(), "%Y-%m-%d %H:%M:%S")))
 cat("  PIPELINE COMPLETE\n")
-cat(sprintf("  Log  -> %s\n", log_file))
-cat(sprintf("  Stats tables -> %s/\n", stat_dir))
+cat(sprintf("  Log    -> %s\n", log_file))
+cat(sprintf("  Stats  -> %s/\n", stat_dir))
+cat(sprintf("  Plots  -> outputs/plots/\n"))
 cat("================================================================\n")
 
 # ── Close sink cleanly ───────────────────────────────────────────────────────

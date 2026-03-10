@@ -1,7 +1,11 @@
 Generated Plots Manifest
 ========================
-Timestamp : 2026-03-09 11:42:53
+Timestamp : 2026-03-10 18:57:50
 
-01_ir_by_condition_raincloud.png  | IR CR Raincloud by noun condition (9x6in, 200dpi)
-02_wr_accuracy_raincloud.png      | WR conditional accuracy Raincloud (9x6in, 200dpi)
-07_qq_ir_rt.png                   | Q-Q plot for IR reaction times (8x7in, 200dpi)
+01_ir_cr_by_condition.png       | IR CR raincloud by noun condition
+02_wr_acc_by_condition.png      | WR accuracy raincloud by noun condition
+03_ir_cr_condition_x_voice.png  | IR CR interaction (condition x voice)
+04_wr_acc_condition_x_voice.png | WR accuracy interaction (condition x voice)
+05_ir_rt_by_condition.png       | IR RT raincloud by noun condition
+06_qq_ir_cr.png                 | Q-Q plot for IR CR (normality check)
+07_qq_ir_rt.png                 | Q-Q plot for IR RT (normality check)

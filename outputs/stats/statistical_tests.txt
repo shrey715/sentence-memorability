@@ -1,7 +1,7 @@
 
-----------------------------------------------------------------
-Omnibus Kruskal-Wallis: ir_cr ~ noun_condition
-----------------------------------------------------------------
+================================================================
+Kruskal-Wallis: Corrected IR ~ noun_condition
+================================================================
 
 	Kruskal-Wallis rank sum test
 
@@ -10,7 +10,7 @@ Kruskal-Wallis chi-squared = 11.26, df = 3, p-value = 0.0104
 
   Effect Size (epsilon^2) = 0.0126
 
-  Post-hoc Pairwise Wilcoxon (Holm correction) for ir_cr:
+  Post-hoc Pairwise Wilcoxon (Holm correction) for Corrected IR:
 
 	Pairwise comparisons using Wilcoxon rank sum test with continuity correction 
 
@@ -23,9 +23,9 @@ LL 0.024 0.024 0.077
 
 P value adjustment method: holm 
 
-----------------------------------------------------------------
-Omnibus Kruskal-Wallis: wr_acc_score ~ noun_condition
-----------------------------------------------------------------
+================================================================
+Kruskal-Wallis: WR Accuracy ~ noun_condition
+================================================================
 
 	Kruskal-Wallis rank sum test
 
@@ -33,29 +33,78 @@ data:  wr_acc_score by noun_condition
 Kruskal-Wallis chi-squared = 2.5218, df = 3, p-value = 0.4714
 
   Effect Size (epsilon^2) = 0.0028
+  No post-hoc test (omnibus p >= .05)
 
-----------------------------------------------------------------
-Omnibus Kruskal-Wallis: ir_rt ~ noun_condition
-----------------------------------------------------------------
+================================================================
+Kruskal-Wallis: IR Reaction Time ~ noun_condition
+================================================================
 
 	Kruskal-Wallis rank sum test
 
 data:  ir_rt by noun_condition
-Kruskal-Wallis chi-squared = 5.3248, df = 3, p-value = 0.1495
+Kruskal-Wallis chi-squared = 6.0469, df = 3, p-value = 0.1093
 
-  Effect Size (epsilon^2) = 0.0060
+  Effect Size (epsilon^2) = 0.0068
+  No post-hoc test (omnibus p >= .05)
 
 ================================================================
-Scheirer-Ray-Hare: ir_cr ~ noun_condition * voice
+Scheirer-Ray-Hare: Corrected IR ~ noun_condition * voice
+================================================================
                       Df   Sum Sq       H p.value
 noun_condition         3   753788 11.2603 0.01040
 voice                  1    50715  0.7576 0.38408
 noun_condition:voice   3    14610  0.2183 0.97459
 Residuals            888 59093821                
 
-Scheirer-Ray-Hare: wr_acc_score ~ noun_condition * voice
+================================================================
+Scheirer-Ray-Hare: WR Accuracy ~ noun_condition * voice
+================================================================
                       Df   Sum Sq      H p.value
 noun_condition         3   161329 2.5101 0.47346
 voice                  1    76280 1.1869 0.27597
 noun_condition:voice   3   276066 4.2953 0.23129
 Residuals            882 56622631               
+
+================================================================
+Paired Wilcoxon: Corrected IR Active vs Passive
+================================================================
+
+	Wilcoxon signed rank test with continuity correction
+
+data:  voice_agg$ir_cr_mean_Active and voice_agg$ir_cr_mean_Passive
+V = 1916.5, p-value = 0.4853
+alternative hypothesis: true location shift is not equal to 0
+
+
+================================================================
+Paired Wilcoxon: WR Accuracy Active vs Passive
+================================================================
+
+	Wilcoxon signed rank test with continuity correction
+
+data:  voice_agg$wr_acc_mean_Active and voice_agg$wr_acc_mean_Passive
+V = 3520.5, p-value = 0.1142
+alternative hypothesis: true location shift is not equal to 0
+
+
+================================================================
+One-sample Wilcoxon: WR Active vs chance (0.5)
+================================================================
+
+	Wilcoxon signed rank test with continuity correction
+
+data:  voice_agg$wr_acc_mean_Active
+V = 6317.5, p-value < 0.00000000000000022
+alternative hypothesis: true location is greater than 0.5
+
+
+================================================================
+One-sample Wilcoxon: WR Passive vs chance (0.5)
+================================================================
+
+	Wilcoxon signed rank test with continuity correction
+
+data:  voice_agg$wr_acc_mean_Passive
+V = 6202, p-value < 0.00000000000000022
+alternative hypothesis: true location is greater than 0.5
+
