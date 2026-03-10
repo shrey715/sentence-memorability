@@ -1,31 +1,5 @@
 ================================================================================
-File: src/Sentence Memorability.txt
-================================================================================
-
-```
-1. Relevant papers:
-- https://www.sciencedirect.com/science/article/abs/pii/S0022537171800105
-- https://www.sciencedirect.com/science/article/abs/pii/S0022537168800222
-- https://www.sciencedirect.com/science/article/abs/pii/S002253717380060X
-2. Brief on experiment and methodology:
-- We generated simple Subject–Verb–Object (S–V–O) sentences by systematically varying the memorability of the subject and object nouns. High- and low-memorability nouns were drawn from established word memorability norms, while verbs were selected from a fixed set of medium-concreteness action verbs to minimize variability. This yielded four sentence types: HH, HL, LH, and LL. Sentences were short (≤8 words), used no proper nouns, and were phrased in natural spoken English. Automated fluency checks and semantic-coherence filters removed ungrammatical or implausible sentences, followed by manual screening. From the resulting pool, we selected 200 active-voice sentences (50 per type). Each sentence was also converted into a passive-voice form, producing paired active and passive variants. This resulted in 400 total sentences across eight conditions (HH, HL, LH, LL × active/passive), enabling tests of exact repetition and voice-transformed recognition.
-- It's a continuous recognition experiment. Each participant sees 48 target sentences across 3 blocks.
-3. Research question of Interest
-- How memorability of sentences is affected by it's structure and constituent words
-4. Statistical metrics
-- Kruskal-Wallis test
-- Corrected memorability scores
-5. Types of variables
-- Words (H and L) and voice (Active and passive)
-6. Number of participants
-- According to our power analysis we would require a total of 334 participants that are successfully completed the experiment for our hypotheses.
-7. Exclusion Criteria
-- The blocks that have not passed the validation test will be excluded from the final calculation of the memorability scores
-- The validation formula: Number of Correct validation (IRs) > (Number of wrong IRs / 2 ) + Number of Missed IRs (Validation)
-```
-
-================================================================================
-File: src/methods/results.md
+File: src/report/results.md
 ================================================================================
 
 ```
@@ -171,7 +145,7 @@ across the session, but the effect does not reach statistical significance.
 ```
 
 ================================================================================
-File: src/methods/methods.md
+File: src/report/methods.md
 ================================================================================
 
 ```
@@ -319,310 +293,7 @@ All analyses were conducted in R (≥ 4.3) using the packages `dplyr`, `tidyr`, 
 ```
 
 ================================================================================
-File: src/methods/results_stats.R
-================================================================================
-
-```
-# results_stats.R
-# Computes all statistics cited in results.md.
-# All numbers reported in the write-up must trace to output from this script.
-library(dplyr)
-library(stringr)
-
-# ── Load ──────────────────────────────────────────────────────────────────────
-df <- read.csv("data/processed/final_data.csv", stringsAsFactors = FALSE)
-
-df <- df %>%
-  mutate(
-    stim_prefix    = str_extract(stimulus_id, "^[A-Z]+"),
-    voice_code     = str_extract(stimulus_id, "[AP]$"),
-    noun_condition = case_when(
-      stim_prefix == "HH"  ~ "HH",
-      stim_prefix == "HVL" ~ "HL",
-      stim_prefix == "LVH" ~ "LH",
-      stim_prefix == "LVL" ~ "LL",
-      TRUE                 ~ NA_character_
-    ),
-    voice = case_when(
-      voice_code == "A" ~ "Active",
-      voice_code == "P" ~ "Passive",
-      TRUE              ~ NA_character_
-    )
-  )
-
-# ── Subsets ───────────────────────────────────────────────────────────────────
-probes_shown <- df %>%
-  filter(event_type         == "Sentence shown",
-         is_target_sentence == TRUE,
-         is_probe_repeat    == TRUE,
-         !is.na(noun_condition))
-
-ir_hits <- df %>%
-  filter(event_type         == "IR pressed",
-         is_target_sentence == TRUE,
-         is_probe_repeat    == TRUE,
-         !is.na(noun_condition))
-
-wr_presses <- df %>%
-  filter(event_type         == "WR pressed",
-         is_target_sentence == TRUE,
-         is_probe_repeat    == TRUE,
-         !is.na(noun_condition))
-
-# ── FA rate: HF first showings only ──────────────────────────────────────────
-n_hf_first <- df %>%
-  filter(event_type         == "Sentence shown",
-         is_target_sentence == FALSE,
-         stim_prefix        == "HF",
-         is_probe_repeat    == FALSE) %>%
-  count(participant_id, name = "n_hf_shown")
-
-n_fa <- df %>%
-  filter(event_type         == "IR pressed",
-         is_target_sentence == FALSE,
-         stim_prefix        == "HF",
-         is_probe_repeat    == FALSE) %>%
-  count(participant_id, name = "n_fa")
-
-fa_rate <- merge(n_hf_first, n_fa, by = "participant_id", all.x = TRUE) %>%
-  mutate(n_fa    = ifelse(is.na(n_fa), 0, n_fa),
-         fa_rate = n_fa / n_hf_shown)
-
-# ── Build trial-level probe table ─────────────────────────────────────────────
-probes <- probes_shown %>%
-  left_join(
-    ir_hits %>% select(participant_id, stimulus_id, block_id,
-                       ir_hit = ir_accuracy,
-                       ir_rt  = ir_reaction_time_ms),
-    by = c("participant_id", "stimulus_id", "block_id")
-  ) %>%
-  mutate(ir_hit = ifelse(is.na(ir_hit), 0L, ir_hit)) %>%
-  left_join(
-    wr_presses %>% select(participant_id, stimulus_id, block_id,
-                          wr_acc = wr_accuracy),
-    by = c("participant_id", "stimulus_id", "block_id")
-  )
-
-# ── SECTION 0: Descriptive overview ──────────────────────────────────────────
-cat("══════════════════════════════════════════════════════\n")
-cat("SECTION 0: OVERVIEW\n")
-cat("══════════════════════════════════════════════════════\n")
-
-n_participants   <- n_distinct(probes$participant_id)
-n_target_trials  <- nrow(probes)
-n_valid_blocks   <- n_distinct(df %>% select(participant_id, block_id))
-overall_hit_rate <- mean(probes$ir_hit, na.rm = TRUE)
-overall_fa_rate  <- mean(fa_rate$fa_rate, na.rm = TRUE)
-
-cat(sprintf("  Participants          : %d\n",    n_participants))
-cat(sprintf("  Target probe trials  : %d\n",    n_target_trials))
-cat(sprintf("  Valid blocks         : %d / %d (%.1f%%)\n",
-    n_valid_blocks, n_participants * 3, n_valid_blocks / (n_participants * 3) * 100))
-cat(sprintf("  Overall hit rate     : %.3f\n",  overall_hit_rate))
-cat(sprintf("  Overall FA rate      : %.3f\n",  overall_fa_rate))
-cat(sprintf("  Overall corrected IR : %.3f\n",  overall_hit_rate - overall_fa_rate))
-cat(sprintf("  FA rate range        : %.3f – %.3f\n",
-    min(fa_rate$fa_rate), max(fa_rate$fa_rate)))
-cat(sprintf("  HF first showings    : %d – %d\n",
-    min(n_hf_first$n_hf_shown), max(n_hf_first$n_hf_shown)))
-cat("\n")
-
-
-# ── SECTION 1: IR corrected recognition × noun condition ─────────────────────
-cat("══════════════════════════════════════════════════════\n")
-cat("SECTION 1: IR CORRECTED RECOGNITION × NOUN CONDITION\n")
-cat("══════════════════════════════════════════════════════\n")
-
-hit_by_cond <- probes %>%
-  group_by(participant_id, noun_condition) %>%
-  summarise(hit_rate = mean(ir_hit, na.rm = TRUE), .groups = "drop") %>%
-  left_join(fa_rate %>% select(participant_id, fa_rate), by = "participant_id") %>%
-  mutate(fa_rate      = ifelse(is.na(fa_rate), 0, fa_rate),
-         corrected_ir = hit_rate - fa_rate)
-
-cond_summary <- hit_by_cond %>%
-  group_by(noun_condition) %>%
-  summarise(M   = round(mean(corrected_ir,   na.rm = TRUE), 3),
-            SD  = round(sd(corrected_ir,     na.rm = TRUE), 3),
-            Mdn = round(median(corrected_ir, na.rm = TRUE), 3),
-            n   = n(), .groups = "drop") %>%
-  arrange(desc(M))
-
-cat("Condition-level descriptives:\n")
-print(as.data.frame(cond_summary))
-
-kw_ir <- kruskal.test(corrected_ir ~ noun_condition, data = hit_by_cond)
-cat(sprintf("\nKruskal-Wallis: H(%d) = %.3f, p = %.4f\n",
-    kw_ir$parameter, kw_ir$statistic, kw_ir$p.value))
-
-cat("\nPost-hoc pairwise Wilcoxon (Holm-corrected):\n")
-pw_ir <- pairwise.wilcox.test(
-  hit_by_cond$corrected_ir, hit_by_cond$noun_condition,
-  p.adjust.method = "holm", paired = FALSE
-)
-print(pw_ir$p.value)
-cat("\n")
-
-
-# ── SECTION 2: WR accuracy × noun condition ───────────────────────────────────
-cat("══════════════════════════════════════════════════════\n")
-cat("SECTION 2: WR ACCURACY × NOUN CONDITION\n")
-cat("══════════════════════════════════════════════════════\n")
-
-wr_by_cond <- probes %>%
-  filter(!is.na(wr_acc)) %>%
-  group_by(participant_id, noun_condition) %>%
-  summarise(wr_accuracy = mean(wr_acc, na.rm = TRUE), .groups = "drop")
-
-wr_cond_summary <- wr_by_cond %>%
-  group_by(noun_condition) %>%
-  summarise(M   = round(mean(wr_accuracy,   na.rm = TRUE), 3),
-            SD  = round(sd(wr_accuracy,     na.rm = TRUE), 3),
-            Mdn = round(median(wr_accuracy, na.rm = TRUE), 3),
-            n   = n(), .groups = "drop")
-
-cat("WR accuracy by condition:\n")
-print(as.data.frame(wr_cond_summary))
-
-kw_wr <- kruskal.test(wr_accuracy ~ noun_condition, data = wr_by_cond)
-cat(sprintf("\nKruskal-Wallis: H(%d) = %.3f, p = %.4f\n\n",
-    kw_wr$parameter, kw_wr$statistic, kw_wr$p.value))
-
-
-# ── SECTION 3: Voice effect on IR ────────────────────────────────────────────
-cat("══════════════════════════════════════════════════════\n")
-cat("SECTION 3: VOICE EFFECT ON IR\n")
-cat("══════════════════════════════════════════════════════\n")
-
-hit_by_voice <- probes %>%
-  group_by(participant_id, voice) %>%
-  summarise(hit_rate = mean(ir_hit, na.rm = TRUE), .groups = "drop") %>%
-  left_join(fa_rate %>% select(participant_id, fa_rate), by = "participant_id") %>%
-  mutate(fa_rate      = ifelse(is.na(fa_rate), 0, fa_rate),
-         corrected_ir = hit_rate - fa_rate)
-
-voice_summary <- hit_by_voice %>%
-  group_by(voice) %>%
-  summarise(M   = round(mean(corrected_ir,   na.rm = TRUE), 3),
-            SD  = round(sd(corrected_ir,     na.rm = TRUE), 3),
-            Mdn = round(median(corrected_ir, na.rm = TRUE), 3), .groups = "drop")
-print(as.data.frame(voice_summary))
-
-active_ir  <- hit_by_voice$corrected_ir[hit_by_voice$voice == "Active"]
-passive_ir <- hit_by_voice$corrected_ir[hit_by_voice$voice == "Passive"]
-wt_voice   <- wilcox.test(active_ir, passive_ir, paired = TRUE)
-cat(sprintf("Wilcoxon signed-rank: V = %.0f, p = %.4f\n\n",
-    wt_voice$statistic, wt_voice$p.value))
-
-
-# ── SECTION 4: 8-cell condition × voice descriptives ─────────────────────────
-cat("══════════════════════════════════════════════════════\n")
-cat("SECTION 4: 8-CELL CONDITION × VOICE DESCRIPTIVES\n")
-cat("══════════════════════════════════════════════════════\n")
-
-hit_by_cv <- probes %>%
-  group_by(participant_id, noun_condition, voice) %>%
-  summarise(hit_rate = mean(ir_hit, na.rm = TRUE), .groups = "drop") %>%
-  left_join(fa_rate %>% select(participant_id, fa_rate), by = "participant_id") %>%
-  mutate(fa_rate      = ifelse(is.na(fa_rate), 0, fa_rate),
-         corrected_ir = hit_rate - fa_rate)
-
-cv_summary <- hit_by_cv %>%
-  group_by(noun_condition, voice) %>%
-  summarise(M  = round(mean(corrected_ir, na.rm = TRUE), 3),
-            SD = round(sd(corrected_ir,   na.rm = TRUE), 3),
-            n  = n(), .groups = "drop") %>%
-  arrange(desc(M))
-print(as.data.frame(cv_summary))
-cat("\n")
-
-
-# ── SECTION 5: Voice effect on WR ────────────────────────────────────────────
-cat("══════════════════════════════════════════════════════\n")
-cat("SECTION 5: VOICE EFFECT ON WR\n")
-cat("══════════════════════════════════════════════════════\n")
-
-wr_by_voice <- probes %>%
-  filter(!is.na(wr_acc)) %>%
-  group_by(participant_id, voice) %>%
-  summarise(wr_accuracy = mean(wr_acc, na.rm = TRUE), .groups = "drop")
-
-wr_voice_summary <- wr_by_voice %>%
-  group_by(voice) %>%
-  summarise(M   = round(mean(wr_accuracy,   na.rm = TRUE), 3),
-            SD  = round(sd(wr_accuracy,     na.rm = TRUE), 3),
-            Mdn = round(median(wr_accuracy, na.rm = TRUE), 3), .groups = "drop")
-print(as.data.frame(wr_voice_summary))
-
-active_wr  <- wr_by_voice$wr_accuracy[wr_by_voice$voice == "Active"]
-passive_wr <- wr_by_voice$wr_accuracy[wr_by_voice$voice == "Passive"]
-wt_wr      <- wilcox.test(active_wr, passive_wr, paired = TRUE)
-cat(sprintf("Wilcoxon signed-rank: V = %.0f, p = %.4f\n", wt_wr$statistic, wt_wr$p.value))
-
-cat("Above chance (vs 0.5):\n")
-for (v in c("Active", "Passive")) {
-  vals <- wr_by_voice$wr_accuracy[wr_by_voice$voice == v]
-  wt   <- wilcox.test(vals, mu = 0.5, alternative = "greater")
-  cat(sprintf("  %s: V = %.0f, p = %.6f\n", v, wt$statistic, wt$p.value))
-}
-cat("\n")
-
-
-# ── SECTION 6: Block effects ──────────────────────────────────────────────────
-cat("══════════════════════════════════════════════════════\n")
-cat("SECTION 6: BLOCK EFFECTS\n")
-cat("══════════════════════════════════════════════════════\n")
-
-hit_by_block <- probes %>%
-  group_by(participant_id, block_id) %>%
-  summarise(hit_rate = mean(ir_hit, na.rm = TRUE), .groups = "drop") %>%
-  left_join(fa_rate %>% select(participant_id, fa_rate), by = "participant_id") %>%
-  mutate(fa_rate      = ifelse(is.na(fa_rate), 0, fa_rate),
-         corrected_ir = hit_rate - fa_rate)
-
-block_summary <- hit_by_block %>%
-  group_by(block_id) %>%
-  summarise(M  = round(mean(corrected_ir, na.rm = TRUE), 3),
-            SD = round(sd(corrected_ir,   na.rm = TRUE), 3),
-            n  = n(), .groups = "drop")
-print(as.data.frame(block_summary))
-
-kw_block <- kruskal.test(corrected_ir ~ factor(block_id), data = hit_by_block)
-cat(sprintf("Kruskal-Wallis: H(%d) = %.3f, p = %.4f\n\n",
-    kw_block$parameter, kw_block$statistic, kw_block$p.value))
-
-
-# ── SUMMARY TABLE ─────────────────────────────────────────────────────────────
-cat("══════════════════════════════════════════════════════\n")
-cat("SUMMARY OF ALL TESTS\n")
-cat("══════════════════════════════════════════════════════\n")
-
-stats_summary <- data.frame(
-  Test      = c("KW: IR × Noun Condition",
-                "KW: WR × Noun Condition",
-                "WSR: IR Active vs. Passive",
-                "WSR: WR Active vs. Passive",
-                "KW: IR × Block"),
-  Statistic = round(c(kw_ir$statistic,  kw_wr$statistic,
-                      wt_voice$statistic, wt_wr$statistic,
-                      kw_block$statistic), 3),
-  df        = c(kw_ir$parameter, kw_wr$parameter, NA, NA, kw_block$parameter),
-  p_value   = round(c(kw_ir$p.value,  kw_wr$p.value,
-                      wt_voice$p.value, wt_wr$p.value,
-                      kw_block$p.value), 4),
-  Sig       = ifelse(c(kw_ir$p.value, kw_wr$p.value,
-                       wt_voice$p.value, wt_wr$p.value,
-                       kw_block$p.value) < .05, "✓", "")
-)
-
-print(stats_summary, row.names = FALSE)
-write.csv(stats_summary, "data/processed/stats_summary.csv", row.names = FALSE)
-cat("\nSaved: data/processed/stats_summary.csv\n")
-
-```
-
-================================================================================
-File: src/statistical_analysis/stats.R
+File: src/analysis/stats/05_statistical_tests.R
 ================================================================================
 
 ```
@@ -974,454 +645,310 @@ cat("\nSaved: stats_summary.csv\n")
 ```
 
 ================================================================================
-File: src/preliminary/events.R
+File: src/analysis/stats/results_stats.R
 ================================================================================
 
 ```
+# results_stats.R
+# Computes all statistics cited in results.md.
+# All numbers reported in the write-up must trace to output from this script.
 library(dplyr)
+library(stringr)
 
-processed_data <- read.csv("data/processed/combined_data.csv")
+# ── Load ──────────────────────────────────────────────────────────────────────
+df <- read.csv("data/processed/final_data.csv", stringsAsFactors = FALSE)
 
-# ── Unique events (pre-removal audit) ────────────────────────────────────────
-num_events <- length(unique(processed_data$Event))
-print(paste("Number of unique events in the data:", num_events))
-
-unique_events <- unique(processed_data$Event)
-print("The unique events are:")
-print(unique_events)
-
-event_counts <- table(processed_data$Event)
-print("Event counts for each unique event:")
-print(event_counts)
-
-# ── Drop practice rows AND gaptime in one pass ───────────────────────────────
-# gaptime = ISI timing metadata only; carries no response fields, never used downstream
-processed_data <- processed_data[!grepl("^Practice", processed_data$Event), ]
-processed_data <- processed_data[processed_data$Event != "gap_time", ]
-
-cat("Remaining events after practice + gaptime removal:\n")
-event_counts <- table(processed_data$Event)
-print(event_counts)
-
-write.csv(processed_data, "data/processed/cleaned_data.csv", row.names = FALSE)
-
-cat(sprintf(
-  "\nRows remaining: %d  (removed %d practice + gaptime rows)\n",
-  nrow(processed_data), 81329 - nrow(processed_data)
-))
-
-# ── Helper ───────────────────────────────────────────────────────────────────
-get_count <- function(event_name) event_counts[event_name]
-
-# ── Cross-verification: experimental invariants ───────────────────────────────
-# Invariant 1 (gaptime == Sentence shown) REMOVED — gaptime no longer in data
-
-cat("Invariant 2: Rest Phase started should be exactly 2 per participant\n")
-rest_per_p <- processed_data |>
-  dplyr::filter(Event == "Rest Phase started") |>
-  dplyr::count(participant_id, name = "n_rest")
-cat(sprintf("  Total Rest Phase rows : %d  (expected %d)\n",
-    sum(rest_per_p$n_rest), 114 * 2))
-off_rest <- rest_per_p[rest_per_p$n_rest != 2, ]
-if (nrow(off_rest) == 0) {
-  cat("  All participants have exactly 2 Rest Phase events.\n\n")
-} else {
-  cat("  Deviating participants:\n")
-  print(off_rest)
-  cat("\n")
-}
-
-cat("Invariant 3: IR pressed == WR pressed (WR always follows IR)\n")
-cat(sprintf("  IR pressed : %d\n", get_count("IR pressed")))
-cat(sprintf("  WR pressed : %d\n", get_count("WR pressed")))
-cat(sprintf("  Match: %s\n\n",
-    get_count("IR pressed") == get_count("WR pressed")))
-
-cat("Invariant 4: Target probes should be exactly 48 per participant\n")
-target_probes <- processed_data |>
-  dplyr::filter(
-    Event    == "Sentence shown",
-    isTarget == TRUE,
-    isRepeat == TRUE
-  ) |>
-  dplyr::count(participant_id, name = "n_probes")
-
-cat(sprintf("  Total target probe rows : %d  (expected %d)\n",
-    sum(target_probes$n_probes), 114 * 48))
-cat("  Per-participant summary:\n")
-print(summary(target_probes$n_probes))
-
-off_probes <- target_probes[target_probes$n_probes != 48, ]
-if (nrow(off_probes) == 0) {
-  cat("  All participants have exactly 48 target probes.\n\n")
-} else {
-  cat("  Deviating participants:\n")
-  print(off_probes)
-  cat("\n")
-}
-
-cat("Invariant 5: Target encodings should also be exactly 48 per participant\n")
-target_enc <- processed_data |>
-  dplyr::filter(
-    Event    == "Sentence shown",
-    isTarget == TRUE,
-    is.na(isRepeat)
-  ) |>
-  dplyr::count(participant_id, name = "n_encodings")
-
-off_enc <- target_enc[target_enc$n_encodings != 48, ]
-if (nrow(off_enc) == 0) {
-  cat("  All participants have exactly 48 target encodings.\n\n")
-} else {
-  cat("  Deviating participants:\n")
-  print(off_enc)
-  cat("\n")
-}
-
-cat("Invariant 6: IR on target probes should be <= 48 per participant\n")
-ir_on_probes <- processed_data |>
-  dplyr::filter(
-    Event    == "IR pressed",
-    isTarget == TRUE,
-    isRepeat == TRUE
-  ) |>
-  dplyr::count(participant_id, name = "n_ir_on_probes")
-
-cat(sprintf("  Min: %d  |  Max: %d  |  Median: %.0f\n",
-    min(ir_on_probes$n_ir_on_probes),
-    max(ir_on_probes$n_ir_on_probes),
-    median(ir_on_probes$n_ir_on_probes)))
-
-ir_on_probes$n_missed <- 48 - ir_on_probes$n_ir_on_probes
-cat(sprintf("  Total missed IR across all participants: %d\n",
-    sum(ir_on_probes$n_missed)))
-cat(sprintf("  Overall miss rate: %.1f%%\n\n",
-    mean(ir_on_probes$n_missed / 48) * 100))
-
-cat("Invariant 7: Sentence shown per participant should all be 222\n")
-shown_per_p <- processed_data |>
-  dplyr::filter(Event == "Sentence shown") |>
-  dplyr::count(participant_id, name = "n_shown")
-off_shown <- shown_per_p[shown_per_p$n_shown != 222, ]
-if (nrow(off_shown) == 0) {
-  cat("  All participants: exactly 222 Sentence shown.\n\n")
-} else {
-  cat("  Deviating participants:\n")
-  print(off_shown)
-  cat("\n")
-}
-
-assign_block_ids <- function(events) {
-  block_vec <- integer(length(events))
-  blk <- 1L
-  for (i in seq_along(events)) {
-    block_vec[i] <- blk
-    if (events[i] == "Rest Phase started") blk <- blk + 1L
-  }
-  block_vec
-}
-
-processed_data <- processed_data |>
-  dplyr::group_by(participant_id) |>
-  dplyr::mutate(block_id = assign_block_ids(Event)) |>
-  dplyr::ungroup()
-
-# Sanity: exactly 3 blocks per participant
-block_check <- processed_data |>
-  dplyr::filter(Event != "Rest Phase started") |>
-  dplyr::group_by(participant_id) |>
-  dplyr::summarise(n_blocks = dplyr::n_distinct(block_id), .groups = "drop")
-
-off_blocks <- block_check[block_check$n_blocks != 3, ]
-if (nrow(off_blocks) == 0) {
-  cat("All participants have exactly 3 blocks.\n")
-} else {
-  cat("Deviating participants:\n")
-  print(off_blocks)
-}
-
-# Sanity: 16 target probes per block
-probes_per_block <- processed_data |>
-  dplyr::filter(Event == "Sentence shown", isTarget == TRUE, isRepeat == TRUE) |>
-  dplyr::count(participant_id, block_id, name = "n_probes")
-
-cat("\nTarget probes per block summary:\n")
-print(summary(probes_per_block$n_probes))
-
-off_block_probes <- probes_per_block[probes_per_block$n_probes != 16, ]
-if (nrow(off_block_probes) == 0) {
-  cat("All participants have exactly 16 target probes per block.\n\n")
-} else {
-  cat("Deviating participant-blocks:\n")
-  print(off_block_probes)
-}
-
-processed_data <- processed_data[processed_data$Event != "Rest Phase started", ]
-cat(sprintf("Rows after dropping Rest Phase: %d  (removed %d rows)\n",
-    nrow(processed_data), 228))  # 2 rest rows × 114 participants
-
-write.csv(processed_data, "data/processed/cleaned_data.csv", row.names = FALSE)
-cat("Saved updated cleaned_data.csv with block_id column.\n")
-
-```
-
-================================================================================
-File: src/preliminary/data.R
-================================================================================
-
-```
-# This script is for loading and validating the log files in the data directory.
-
-data_dir <- "data/raw"
-
-# number of files in the data directory
-num_files <- length(list.files(data_dir))
-print(paste("Number of files in the data directory:", num_files))
-
-# each log file contains comma-separated values (CSV) with some columns.
-# ill load all the columns only from each file first and validate if each file has the same columns. If not, flag the files with missing columns.
-
-files <- list.files(data_dir, full.names = TRUE)
-
-column_names <- function(file) {
-  data <- read.csv(file, nrows = 1, fileEncoding = "UTF-8-BOM") # read only the first row to get column names
-  return(colnames(data))
-}
-
-columns_list <- lapply(files, column_names)
-
-# check if all files have the same columns
-unique_columns <- unique(columns_list)
-
-if (length(unique_columns) == 1) {
-  print("All files have the same columns. The columns are:")
-  print(unique_columns[[1]])
-} else {
-  print("Files have different columns. Here are the unique column sets:")
-  print(unique_columns)
-}
-
-# row count for each file
-row_counts <- sapply(files, function(file) {
-  data <- read.csv(file, fileEncoding = "UTF-8-BOM")
-  return(nrow(data))
-})
-
-# rows which have different row counts
-if (length(unique(row_counts)) == 1) {
-  print("All files have the same number of rows. The row count is:")
-  print(unique(row_counts))
-} else {
-  print("Files have different row counts. Here are the row counts for each file:")
-  print(data.frame(file = files, row_count = row_counts))
-}
-
-# load final dataframe with all files combined
-load_log <- function(file) {
-  df             <- read.csv(file, fileEncoding = "UTF-8-BOM", na.strings = "N/A")
-  df$participant_id <- as.integer(tools::file_path_sans_ext(basename(file)))
-  return(df)
-}
-
-all_data <- do.call(rbind, lapply(files, load_log))
-all_data <- all_data[, c("participant_id", setdiff(colnames(all_data), "participant_id"))]
-
-all_data$isTarget <- all_data$isTarget == "true"
-all_data$isRepeat <- all_data$isRepeat == "true"
-all_data$isValidation <- all_data$isValidation == "true"
-
-cat(sprintf("\nCombined data frame has %d rows and %d columns from %d participants.\n", nrow(all_data), ncol(all_data), length(unique(all_data$participant_id))))
-
-# saving the generated data frame to a new file for future use
-output_file <- "data/processed/combined_data.csv"
-write.csv(all_data, output_file, row.names = FALSE)
-cat(sprintf("Combined data frame saved to %s\n", output_file))
-
-```
-
-================================================================================
-File: src/preliminary/flagging.R
-================================================================================
-
-```
-# now to analyse all the types of sentences (target, validation, etc) and find invalid participants
-# load the cleaned data with practice rows removed
-library(dplyr)
-
-processed_data <- read.csv("data/processed/cleaned_data.csv")
-
-# ── Step 1: Sentence type counts per participant (sanity check) ───────────────
-sentence_counts <- processed_data |>
-  filter(Event == "Sentence shown") |>
-  group_by(participant_id) |>
-  summarise(
-    n_target_enc   = sum(isTarget == TRUE  & (is.na(isRepeat) | isRepeat == FALSE)),
-    n_target_probe = sum(isTarget == TRUE  & isRepeat == TRUE),
-    n_validation   = sum(isValidation == TRUE & isRepeat == TRUE),  # validation repeats
-    n_filler       = sum(isTarget == FALSE & isValidation == FALSE),
-    n_total        = n(),
-    .groups = "drop"
-  )
-cat("── Sentence type breakdown per participant (first 6):\n")
-print(head(sentence_counts))
-
-cat("\nSummary across all participants:\n")
-print(summary(sentence_counts[, -1]))
-
-# ── Step 2: Compute validation counts per participant × block ─────────────────
-# Three event types feed into the formula:
-#   "Validation IR pressed"       → correct_val  (hit on a validation repeat)
-#   "Validation Wrong IR pressed" → wrong_ir      (spacebar on a non-repeat)
-#   "Validation Missed"           → missed_val    (no spacebar on a validation repeat)
-
-validation_counts <- processed_data |>
-  filter(block_id %in% c(1, 2, 3)) |>
-  group_by(participant_id, block_id) |>
-  summarise(
-    correct_val = sum(Event == "Validation IR pressed"),
-    wrong_ir    = sum(Event == "Validation Wrong IR pressed"),
-    missed_val  = sum(Event == "Validation Missed"),
-    .groups     = "drop"
-  )
-cat("\n── Validation counts (first 10 rows):\n")
-print(head(validation_counts, 10))
-
-# ── Step 3: Apply validation formula ─────────────────────────────────────────
-# correct_val > (wrong_ir / 2) + missed_val
-validation_counts <- validation_counts |>
+df <- df %>%
   mutate(
-    threshold   = (wrong_ir / 2) + missed_val,
-    block_valid = correct_val > threshold
-  )
-cat("\n── Validation results (first 10 rows):\n")
-print(head(validation_counts, 10))
-
-# ── Step 4: Block-level pass/fail summary ─────────────────────────────────────
-cat("\n── Block-level pass/fail:\n")
-block_summary <- validation_counts |>
-  group_by(block_id) |>
-  summarise(
-    n_pass    = sum(block_valid),
-    n_fail    = sum(!block_valid),
-    pass_rate = round(mean(block_valid) * 100, 1),
-    .groups   = "drop"
-  )
-print(block_summary)
-
-# ── Step 5: Participant-level summary ─────────────────────────────────────────
-participant_summary <- validation_counts |>
-  group_by(participant_id) |>
-  summarise(
-    blocks_passed = sum(block_valid),
-    blocks_failed = sum(!block_valid),
-    all_pass      = all(block_valid),
-    .groups       = "drop"
+    stim_prefix    = str_extract(stimulus_id, "^[A-Z]+"),
+    voice_code     = str_extract(stimulus_id, "[AP]$"),
+    noun_condition = case_when(
+      stim_prefix == "HH"  ~ "HH",
+      stim_prefix == "HVL" ~ "HL",
+      stim_prefix == "LVH" ~ "LH",
+      stim_prefix == "LVL" ~ "LL",
+      TRUE                 ~ NA_character_
+    ),
+    voice = case_when(
+      voice_code == "A" ~ "Active",
+      voice_code == "P" ~ "Passive",
+      TRUE              ~ NA_character_
+    )
   )
 
-cat("\n── Participants by number of valid blocks:\n")
-print(table(participant_summary$blocks_passed))
+# ── Subsets ───────────────────────────────────────────────────────────────────
+probes_shown <- df %>%
+  filter(event_type         == "Sentence shown",
+         is_target_sentence == TRUE,
+         is_probe_repeat    == TRUE,
+         !is.na(noun_condition))
 
-cat(sprintf("\nAll 3 blocks valid  : %d participants\n", sum(participant_summary$all_pass)))
-cat(sprintf("1-2 blocks valid    : %d participants\n", sum(!participant_summary$all_pass & participant_summary$blocks_passed > 0)))
-cat(sprintf("0 blocks valid      : %d participants\n", sum(participant_summary$blocks_passed == 0)))
+ir_hits <- df %>%
+  filter(event_type         == "IR pressed",
+         is_target_sentence == TRUE,
+         is_probe_repeat    == TRUE,
+         !is.na(noun_condition))
 
-# ── Step 6: Flag failing blocks in detail ────────────────────────────────────
-cat("\n── Failed blocks (showing why each failed):\n")
-failed <- validation_counts |>
-  filter(!block_valid) |>
-  arrange(participant_id, block_id)
-print(failed)
+wr_presses <- df %>%
+  filter(event_type         == "WR pressed",
+         is_target_sentence == TRUE,
+         is_probe_repeat    == TRUE,
+         !is.na(noun_condition))
 
-cat(sprintf("\nTotal valid blocks   : %d / %d (%.1f%%)\n",
-    sum(validation_counts$block_valid),
-    nrow(validation_counts),
-    mean(validation_counts$block_valid) * 100))
+# ── FA rate: HF first showings only ──────────────────────────────────────────
+n_hf_first <- df %>%
+  filter(event_type         == "Sentence shown",
+         is_target_sentence == FALSE,
+         stim_prefix        == "HF",
+         is_probe_repeat    == FALSE) %>%
+  count(participant_id, name = "n_hf_shown")
 
-# ── Step 7: Attach block_valid back to trial data ────────────────────────────
-# This is the key column every downstream script filters on.
-processed_data <- processed_data |>
+n_fa <- df %>%
+  filter(event_type         == "IR pressed",
+         is_target_sentence == FALSE,
+         stim_prefix        == "HF",
+         is_probe_repeat    == FALSE) %>%
+  count(participant_id, name = "n_fa")
+
+fa_rate <- merge(n_hf_first, n_fa, by = "participant_id", all.x = TRUE) %>%
+  mutate(n_fa    = ifelse(is.na(n_fa), 0, n_fa),
+         fa_rate = n_fa / n_hf_shown)
+
+# ── Build trial-level probe table ─────────────────────────────────────────────
+probes <- probes_shown %>%
   left_join(
-    validation_counts |> select(participant_id, block_id, block_valid),
-    by = c("participant_id", "block_id")
+    ir_hits %>% select(participant_id, stimulus_id, block_id,
+                       ir_hit = ir_accuracy,
+                       ir_rt  = ir_reaction_time_ms),
+    by = c("participant_id", "stimulus_id", "block_id")
+  ) %>%
+  mutate(ir_hit = ifelse(is.na(ir_hit), 0L, ir_hit)) %>%
+  left_join(
+    wr_presses %>% select(participant_id, stimulus_id, block_id,
+                          wr_acc = wr_accuracy),
+    by = c("participant_id", "stimulus_id", "block_id")
   )
 
-cat(sprintf("\nblock_valid attached: TRUE=%d  FALSE=%d  NA=%d\n",
-    sum(processed_data$block_valid == TRUE,  na.rm = TRUE),
-    sum(processed_data$block_valid == FALSE, na.rm = TRUE),
-    sum(is.na(processed_data$block_valid))))
+# ── SECTION 0: Descriptive overview ──────────────────────────────────────────
+cat("══════════════════════════════════════════════════════\n")
+cat("SECTION 0: OVERVIEW\n")
+cat("══════════════════════════════════════════════════════\n")
 
-# ── Step 8: Save ──────────────────────────────────────────────────────────────
-write.csv(processed_data,       "data/processed/pruned_data.csv",         row.names = FALSE)
-write.csv(validation_counts,    "data/processed/validation_report.csv",     row.names = FALSE)
-write.csv(participant_summary,  "data/processed/participant_validity.csv",  row.names = FALSE)
+n_participants   <- n_distinct(probes$participant_id)
+n_target_trials  <- nrow(probes)
+n_valid_blocks   <- n_distinct(df %>% select(participant_id, block_id))
+overall_hit_rate <- mean(probes$ir_hit, na.rm = TRUE)
+overall_fa_rate  <- mean(fa_rate$fa_rate, na.rm = TRUE)
 
-cat("\nSaved: pruned_data.csv, validation_report.csv, participant_validity.csv\n")
+cat(sprintf("  Participants          : %d\n",    n_participants))
+cat(sprintf("  Target probe trials  : %d\n",    n_target_trials))
+cat(sprintf("  Valid blocks         : %d / %d (%.1f%%)\n",
+    n_valid_blocks, n_participants * 3, n_valid_blocks / (n_participants * 3) * 100))
+cat(sprintf("  Overall hit rate     : %.3f\n",  overall_hit_rate))
+cat(sprintf("  Overall FA rate      : %.3f\n",  overall_fa_rate))
+cat(sprintf("  Overall corrected IR : %.3f\n",  overall_hit_rate - overall_fa_rate))
+cat(sprintf("  FA rate range        : %.3f – %.3f\n",
+    min(fa_rate$fa_rate), max(fa_rate$fa_rate)))
+cat(sprintf("  HF first showings    : %d – %d\n",
+    min(n_hf_first$n_hf_shown), max(n_hf_first$n_hf_shown)))
+cat("\n")
 
+
+# ── SECTION 1: IR corrected recognition × noun condition ─────────────────────
+cat("══════════════════════════════════════════════════════\n")
+cat("SECTION 1: IR CORRECTED RECOGNITION × NOUN CONDITION\n")
+cat("══════════════════════════════════════════════════════\n")
+
+hit_by_cond <- probes %>%
+  group_by(participant_id, noun_condition) %>%
+  summarise(hit_rate = mean(ir_hit, na.rm = TRUE), .groups = "drop") %>%
+  left_join(fa_rate %>% select(participant_id, fa_rate), by = "participant_id") %>%
+  mutate(fa_rate      = ifelse(is.na(fa_rate), 0, fa_rate),
+         corrected_ir = hit_rate - fa_rate)
+
+cond_summary <- hit_by_cond %>%
+  group_by(noun_condition) %>%
+  summarise(M   = round(mean(corrected_ir,   na.rm = TRUE), 3),
+            SD  = round(sd(corrected_ir,     na.rm = TRUE), 3),
+            Mdn = round(median(corrected_ir, na.rm = TRUE), 3),
+            n   = n(), .groups = "drop") %>%
+  arrange(desc(M))
+
+cat("Condition-level descriptives:\n")
+print(as.data.frame(cond_summary))
+
+kw_ir <- kruskal.test(corrected_ir ~ noun_condition, data = hit_by_cond)
+cat(sprintf("\nKruskal-Wallis: H(%d) = %.3f, p = %.4f\n",
+    kw_ir$parameter, kw_ir$statistic, kw_ir$p.value))
+
+cat("\nPost-hoc pairwise Wilcoxon (Holm-corrected):\n")
+pw_ir <- pairwise.wilcox.test(
+  hit_by_cond$corrected_ir, hit_by_cond$noun_condition,
+  p.adjust.method = "holm", paired = FALSE
+)
+print(pw_ir$p.value)
+cat("\n")
+
+
+# ── SECTION 2: WR accuracy × noun condition ───────────────────────────────────
+cat("══════════════════════════════════════════════════════\n")
+cat("SECTION 2: WR ACCURACY × NOUN CONDITION\n")
+cat("══════════════════════════════════════════════════════\n")
+
+wr_by_cond <- probes %>%
+  filter(!is.na(wr_acc)) %>%
+  group_by(participant_id, noun_condition) %>%
+  summarise(wr_accuracy = mean(wr_acc, na.rm = TRUE), .groups = "drop")
+
+wr_cond_summary <- wr_by_cond %>%
+  group_by(noun_condition) %>%
+  summarise(M   = round(mean(wr_accuracy,   na.rm = TRUE), 3),
+            SD  = round(sd(wr_accuracy,     na.rm = TRUE), 3),
+            Mdn = round(median(wr_accuracy, na.rm = TRUE), 3),
+            n   = n(), .groups = "drop")
+
+cat("WR accuracy by condition:\n")
+print(as.data.frame(wr_cond_summary))
+
+kw_wr <- kruskal.test(wr_accuracy ~ noun_condition, data = wr_by_cond)
+cat(sprintf("\nKruskal-Wallis: H(%d) = %.3f, p = %.4f\n\n",
+    kw_wr$parameter, kw_wr$statistic, kw_wr$p.value))
+
+
+# ── SECTION 3: Voice effect on IR ────────────────────────────────────────────
+cat("══════════════════════════════════════════════════════\n")
+cat("SECTION 3: VOICE EFFECT ON IR\n")
+cat("══════════════════════════════════════════════════════\n")
+
+hit_by_voice <- probes %>%
+  group_by(participant_id, voice) %>%
+  summarise(hit_rate = mean(ir_hit, na.rm = TRUE), .groups = "drop") %>%
+  left_join(fa_rate %>% select(participant_id, fa_rate), by = "participant_id") %>%
+  mutate(fa_rate      = ifelse(is.na(fa_rate), 0, fa_rate),
+         corrected_ir = hit_rate - fa_rate)
+
+voice_summary <- hit_by_voice %>%
+  group_by(voice) %>%
+  summarise(M   = round(mean(corrected_ir,   na.rm = TRUE), 3),
+            SD  = round(sd(corrected_ir,     na.rm = TRUE), 3),
+            Mdn = round(median(corrected_ir, na.rm = TRUE), 3), .groups = "drop")
+print(as.data.frame(voice_summary))
+
+active_ir  <- hit_by_voice$corrected_ir[hit_by_voice$voice == "Active"]
+passive_ir <- hit_by_voice$corrected_ir[hit_by_voice$voice == "Passive"]
+wt_voice   <- wilcox.test(active_ir, passive_ir, paired = TRUE)
+cat(sprintf("Wilcoxon signed-rank: V = %.0f, p = %.4f\n\n",
+    wt_voice$statistic, wt_voice$p.value))
+
+
+# ── SECTION 4: 8-cell condition × voice descriptives ─────────────────────────
+cat("══════════════════════════════════════════════════════\n")
+cat("SECTION 4: 8-CELL CONDITION × VOICE DESCRIPTIVES\n")
+cat("══════════════════════════════════════════════════════\n")
+
+hit_by_cv <- probes %>%
+  group_by(participant_id, noun_condition, voice) %>%
+  summarise(hit_rate = mean(ir_hit, na.rm = TRUE), .groups = "drop") %>%
+  left_join(fa_rate %>% select(participant_id, fa_rate), by = "participant_id") %>%
+  mutate(fa_rate      = ifelse(is.na(fa_rate), 0, fa_rate),
+         corrected_ir = hit_rate - fa_rate)
+
+cv_summary <- hit_by_cv %>%
+  group_by(noun_condition, voice) %>%
+  summarise(M  = round(mean(corrected_ir, na.rm = TRUE), 3),
+            SD = round(sd(corrected_ir,   na.rm = TRUE), 3),
+            n  = n(), .groups = "drop") %>%
+  arrange(desc(M))
+print(as.data.frame(cv_summary))
+cat("\n")
+
+
+# ── SECTION 5: Voice effect on WR ────────────────────────────────────────────
+cat("══════════════════════════════════════════════════════\n")
+cat("SECTION 5: VOICE EFFECT ON WR\n")
+cat("══════════════════════════════════════════════════════\n")
+
+wr_by_voice <- probes %>%
+  filter(!is.na(wr_acc)) %>%
+  group_by(participant_id, voice) %>%
+  summarise(wr_accuracy = mean(wr_acc, na.rm = TRUE), .groups = "drop")
+
+wr_voice_summary <- wr_by_voice %>%
+  group_by(voice) %>%
+  summarise(M   = round(mean(wr_accuracy,   na.rm = TRUE), 3),
+            SD  = round(sd(wr_accuracy,     na.rm = TRUE), 3),
+            Mdn = round(median(wr_accuracy, na.rm = TRUE), 3), .groups = "drop")
+print(as.data.frame(wr_voice_summary))
+
+active_wr  <- wr_by_voice$wr_accuracy[wr_by_voice$voice == "Active"]
+passive_wr <- wr_by_voice$wr_accuracy[wr_by_voice$voice == "Passive"]
+wt_wr      <- wilcox.test(active_wr, passive_wr, paired = TRUE)
+cat(sprintf("Wilcoxon signed-rank: V = %.0f, p = %.4f\n", wt_wr$statistic, wt_wr$p.value))
+
+cat("Above chance (vs 0.5):\n")
+for (v in c("Active", "Passive")) {
+  vals <- wr_by_voice$wr_accuracy[wr_by_voice$voice == v]
+  wt   <- wilcox.test(vals, mu = 0.5, alternative = "greater")
+  cat(sprintf("  %s: V = %.0f, p = %.6f\n", v, wt$statistic, wt$p.value))
+}
+cat("\n")
+
+
+# ── SECTION 6: Block effects ──────────────────────────────────────────────────
+cat("══════════════════════════════════════════════════════\n")
+cat("SECTION 6: BLOCK EFFECTS\n")
+cat("══════════════════════════════════════════════════════\n")
+
+hit_by_block <- probes %>%
+  group_by(participant_id, block_id) %>%
+  summarise(hit_rate = mean(ir_hit, na.rm = TRUE), .groups = "drop") %>%
+  left_join(fa_rate %>% select(participant_id, fa_rate), by = "participant_id") %>%
+  mutate(fa_rate      = ifelse(is.na(fa_rate), 0, fa_rate),
+         corrected_ir = hit_rate - fa_rate)
+
+block_summary <- hit_by_block %>%
+  group_by(block_id) %>%
+  summarise(M  = round(mean(corrected_ir, na.rm = TRUE), 3),
+            SD = round(sd(corrected_ir,   na.rm = TRUE), 3),
+            n  = n(), .groups = "drop")
+print(as.data.frame(block_summary))
+
+kw_block <- kruskal.test(corrected_ir ~ factor(block_id), data = hit_by_block)
+cat(sprintf("Kruskal-Wallis: H(%d) = %.3f, p = %.4f\n\n",
+    kw_block$parameter, kw_block$statistic, kw_block$p.value))
+
+
+# ── SUMMARY TABLE ─────────────────────────────────────────────────────────────
+cat("══════════════════════════════════════════════════════\n")
+cat("SUMMARY OF ALL TESTS\n")
+cat("══════════════════════════════════════════════════════\n")
+
+stats_summary <- data.frame(
+  Test      = c("KW: IR × Noun Condition",
+                "KW: WR × Noun Condition",
+                "WSR: IR Active vs. Passive",
+                "WSR: WR Active vs. Passive",
+                "KW: IR × Block"),
+  Statistic = round(c(kw_ir$statistic,  kw_wr$statistic,
+                      wt_voice$statistic, wt_wr$statistic,
+                      kw_block$statistic), 3),
+  df        = c(kw_ir$parameter, kw_wr$parameter, NA, NA, kw_block$parameter),
+  p_value   = round(c(kw_ir$p.value,  kw_wr$p.value,
+                      wt_voice$p.value, wt_wr$p.value,
+                      kw_block$p.value), 4),
+  Sig       = ifelse(c(kw_ir$p.value, kw_wr$p.value,
+                       wt_voice$p.value, wt_wr$p.value,
+                       kw_block$p.value) < .05, "✓", "")
+)
+
+print(stats_summary, row.names = FALSE)
+write.csv(stats_summary, "data/processed/stats_summary.csv", row.names = FALSE)
+cat("\nSaved: data/processed/stats_summary.csv\n")
 
 ```
 
 ================================================================================
-File: src/preliminary/final_cleaning.R
-================================================================================
-
-```
-# loading the pruned data, to basically work with all the non-excluded blocks and participants
-processed_data <- read.csv("data/processed/pruned_data.csv")
-
-processed_data$participant_id <- NULL
-
-processed_data <- processed_data |>
-  dplyr::rename(
-    participant_id            = participant_ID,
-    event_timestamp_ms        = Timestamp,
-    event_type                = Event,
-    stimulus_id               = Stimulus,
-    is_target_sentence        = isTarget,
-    is_validation_sentence    = isValidation,
-    is_probe_repeat           = isRepeat,
-    response_button           = Button,
-    ir_accuracy               = Accuracy.IR,
-    wr_accuracy               = Accuracy.WR,
-    ir_reaction_time_ms       = Reaction_time_IR,
-    wr_reaction_time_ms       = Reaction_time_WR,
-    ir_corrected_recognition  = CR_IR,
-    wr_corrected_recognition  = CR_WR,
-    block_id                  = block_id,
-    block_passed_validation   = block_valid
-  )
-
-# ── Drop all rows from invalid blocks ─────────────────────────────────────────
-rows_before <- nrow(processed_data)
-
-processed_data <- processed_data[processed_data$block_passed_validation == TRUE, ]
-
-cat(sprintf("Rows before exclusion : %d\n", rows_before))
-cat(sprintf("Rows after exclusion  : %d\n", nrow(processed_data)))
-cat(sprintf("Rows dropped          : %d  (from failed blocks)\n",
-            rows_before - nrow(processed_data)))
-
-# block_passed_validation is now redundant — every remaining row is TRUE
-processed_data$block_passed_validation <- NULL
-
-cat("\nFinal column names:\n")
-print(colnames(processed_data))
-
-cat(sprintf("\nFinal dimensions: %d rows × %d columns\n",
-            nrow(processed_data), ncol(processed_data)))
-
-cat(sprintf("Participants remaining: %d\n",
-            length(unique(processed_data$participant_id))))
-
-cat(sprintf("Valid blocks remaining: %d\n",
-            nrow(unique(processed_data[, c("participant_id", "block_id")]))))
-
-write.csv(processed_data, "data/processed/final_data.csv", row.names = FALSE)
-cat("\nSaved: data/processed/final_data.csv\n")
-
-```
-
-================================================================================
-File: src/visualization/viz.R
+File: src/analysis/visualization/06_generate_plots.R
 ================================================================================
 
 ```
@@ -1837,6 +1364,479 @@ p12 <- ggplot(forest_data, aes(x = M, y = label, colour = voice)) +
 ggsave("plots/12_forest_plot.png", p12, width = 9, height = 5.5, dpi = 300)
 
 cat("All 12 plots saved to plots/\n")
+
+```
+
+================================================================================
+File: src/preprocessing/04_finalize_dataset.R
+================================================================================
+
+```
+# loading the pruned data, to basically work with all the non-excluded blocks and participants
+processed_data <- read.csv("data/processed/pruned_data.csv")
+
+processed_data$participant_id <- NULL
+
+processed_data <- processed_data |>
+  dplyr::rename(
+    participant_id            = participant_ID,
+    event_timestamp_ms        = Timestamp,
+    event_type                = Event,
+    stimulus_id               = Stimulus,
+    is_target_sentence        = isTarget,
+    is_validation_sentence    = isValidation,
+    is_probe_repeat           = isRepeat,
+    response_button           = Button,
+    ir_accuracy               = Accuracy.IR,
+    wr_accuracy               = Accuracy.WR,
+    ir_reaction_time_ms       = Reaction_time_IR,
+    wr_reaction_time_ms       = Reaction_time_WR,
+    ir_corrected_recognition  = CR_IR,
+    wr_corrected_recognition  = CR_WR,
+    block_id                  = block_id,
+    block_passed_validation   = block_valid
+  )
+
+# ── Drop all rows from invalid blocks ─────────────────────────────────────────
+rows_before <- nrow(processed_data)
+
+processed_data <- processed_data[processed_data$block_passed_validation == TRUE, ]
+
+cat(sprintf("Rows before exclusion : %d\n", rows_before))
+cat(sprintf("Rows after exclusion  : %d\n", nrow(processed_data)))
+cat(sprintf("Rows dropped          : %d  (from failed blocks)\n",
+            rows_before - nrow(processed_data)))
+
+# block_passed_validation is now redundant — every remaining row is TRUE
+processed_data$block_passed_validation <- NULL
+
+cat("\nFinal column names:\n")
+print(colnames(processed_data))
+
+cat(sprintf("\nFinal dimensions: %d rows × %d columns\n",
+            nrow(processed_data), ncol(processed_data)))
+
+cat(sprintf("Participants remaining: %d\n",
+            length(unique(processed_data$participant_id))))
+
+cat(sprintf("Valid blocks remaining: %d\n",
+            nrow(unique(processed_data[, c("participant_id", "block_id")]))))
+
+write.csv(processed_data, "data/processed/final_data.csv", row.names = FALSE)
+cat("\nSaved: data/processed/final_data.csv\n")
+
+```
+
+================================================================================
+File: src/preprocessing/02_clean_events.R
+================================================================================
+
+```
+library(dplyr)
+
+processed_data <- read.csv("data/processed/combined_data.csv")
+
+# ── Unique events (pre-removal audit) ────────────────────────────────────────
+num_events <- length(unique(processed_data$Event))
+print(paste("Number of unique events in the data:", num_events))
+
+unique_events <- unique(processed_data$Event)
+print("The unique events are:")
+print(unique_events)
+
+event_counts <- table(processed_data$Event)
+print("Event counts for each unique event:")
+print(event_counts)
+
+# ── Drop practice rows AND gaptime in one pass ───────────────────────────────
+# gaptime = ISI timing metadata only; carries no response fields, never used downstream
+processed_data <- processed_data[!grepl("^Practice", processed_data$Event), ]
+processed_data <- processed_data[processed_data$Event != "gap_time", ]
+
+cat("Remaining events after practice + gaptime removal:\n")
+event_counts <- table(processed_data$Event)
+print(event_counts)
+
+write.csv(processed_data, "data/processed/cleaned_data.csv", row.names = FALSE)
+
+cat(sprintf(
+  "\nRows remaining: %d  (removed %d practice + gaptime rows)\n",
+  nrow(processed_data), 81329 - nrow(processed_data)
+))
+
+# ── Helper ───────────────────────────────────────────────────────────────────
+get_count <- function(event_name) event_counts[event_name]
+
+# ── Cross-verification: experimental invariants ───────────────────────────────
+# Invariant 1 (gaptime == Sentence shown) REMOVED — gaptime no longer in data
+
+cat("Invariant 2: Rest Phase started should be exactly 2 per participant\n")
+rest_per_p <- processed_data |>
+  dplyr::filter(Event == "Rest Phase started") |>
+  dplyr::count(participant_id, name = "n_rest")
+cat(sprintf("  Total Rest Phase rows : %d  (expected %d)\n",
+    sum(rest_per_p$n_rest), 114 * 2))
+off_rest <- rest_per_p[rest_per_p$n_rest != 2, ]
+if (nrow(off_rest) == 0) {
+  cat("  All participants have exactly 2 Rest Phase events.\n\n")
+} else {
+  cat("  Deviating participants:\n")
+  print(off_rest)
+  cat("\n")
+}
+
+cat("Invariant 3: IR pressed == WR pressed (WR always follows IR)\n")
+cat(sprintf("  IR pressed : %d\n", get_count("IR pressed")))
+cat(sprintf("  WR pressed : %d\n", get_count("WR pressed")))
+cat(sprintf("  Match: %s\n\n",
+    get_count("IR pressed") == get_count("WR pressed")))
+
+cat("Invariant 4: Target probes should be exactly 48 per participant\n")
+target_probes <- processed_data |>
+  dplyr::filter(
+    Event    == "Sentence shown",
+    isTarget == TRUE,
+    isRepeat == TRUE
+  ) |>
+  dplyr::count(participant_id, name = "n_probes")
+
+cat(sprintf("  Total target probe rows : %d  (expected %d)\n",
+    sum(target_probes$n_probes), 114 * 48))
+cat("  Per-participant summary:\n")
+print(summary(target_probes$n_probes))
+
+off_probes <- target_probes[target_probes$n_probes != 48, ]
+if (nrow(off_probes) == 0) {
+  cat("  All participants have exactly 48 target probes.\n\n")
+} else {
+  cat("  Deviating participants:\n")
+  print(off_probes)
+  cat("\n")
+}
+
+cat("Invariant 5: Target encodings should also be exactly 48 per participant\n")
+target_enc <- processed_data |>
+  dplyr::filter(
+    Event    == "Sentence shown",
+    isTarget == TRUE,
+    is.na(isRepeat)
+  ) |>
+  dplyr::count(participant_id, name = "n_encodings")
+
+off_enc <- target_enc[target_enc$n_encodings != 48, ]
+if (nrow(off_enc) == 0) {
+  cat("  All participants have exactly 48 target encodings.\n\n")
+} else {
+  cat("  Deviating participants:\n")
+  print(off_enc)
+  cat("\n")
+}
+
+cat("Invariant 6: IR on target probes should be <= 48 per participant\n")
+ir_on_probes <- processed_data |>
+  dplyr::filter(
+    Event    == "IR pressed",
+    isTarget == TRUE,
+    isRepeat == TRUE
+  ) |>
+  dplyr::count(participant_id, name = "n_ir_on_probes")
+
+cat(sprintf("  Min: %d  |  Max: %d  |  Median: %.0f\n",
+    min(ir_on_probes$n_ir_on_probes),
+    max(ir_on_probes$n_ir_on_probes),
+    median(ir_on_probes$n_ir_on_probes)))
+
+ir_on_probes$n_missed <- 48 - ir_on_probes$n_ir_on_probes
+cat(sprintf("  Total missed IR across all participants: %d\n",
+    sum(ir_on_probes$n_missed)))
+cat(sprintf("  Overall miss rate: %.1f%%\n\n",
+    mean(ir_on_probes$n_missed / 48) * 100))
+
+cat("Invariant 7: Sentence shown per participant should all be 222\n")
+shown_per_p <- processed_data |>
+  dplyr::filter(Event == "Sentence shown") |>
+  dplyr::count(participant_id, name = "n_shown")
+off_shown <- shown_per_p[shown_per_p$n_shown != 222, ]
+if (nrow(off_shown) == 0) {
+  cat("  All participants: exactly 222 Sentence shown.\n\n")
+} else {
+  cat("  Deviating participants:\n")
+  print(off_shown)
+  cat("\n")
+}
+
+assign_block_ids <- function(events) {
+  block_vec <- integer(length(events))
+  blk <- 1L
+  for (i in seq_along(events)) {
+    block_vec[i] <- blk
+    if (events[i] == "Rest Phase started") blk <- blk + 1L
+  }
+  block_vec
+}
+
+processed_data <- processed_data |>
+  dplyr::group_by(participant_id) |>
+  dplyr::mutate(block_id = assign_block_ids(Event)) |>
+  dplyr::ungroup()
+
+# Sanity: exactly 3 blocks per participant
+block_check <- processed_data |>
+  dplyr::filter(Event != "Rest Phase started") |>
+  dplyr::group_by(participant_id) |>
+  dplyr::summarise(n_blocks = dplyr::n_distinct(block_id), .groups = "drop")
+
+off_blocks <- block_check[block_check$n_blocks != 3, ]
+if (nrow(off_blocks) == 0) {
+  cat("All participants have exactly 3 blocks.\n")
+} else {
+  cat("Deviating participants:\n")
+  print(off_blocks)
+}
+
+# Sanity: 16 target probes per block
+probes_per_block <- processed_data |>
+  dplyr::filter(Event == "Sentence shown", isTarget == TRUE, isRepeat == TRUE) |>
+  dplyr::count(participant_id, block_id, name = "n_probes")
+
+cat("\nTarget probes per block summary:\n")
+print(summary(probes_per_block$n_probes))
+
+off_block_probes <- probes_per_block[probes_per_block$n_probes != 16, ]
+if (nrow(off_block_probes) == 0) {
+  cat("All participants have exactly 16 target probes per block.\n\n")
+} else {
+  cat("Deviating participant-blocks:\n")
+  print(off_block_probes)
+}
+
+processed_data <- processed_data[processed_data$Event != "Rest Phase started", ]
+cat(sprintf("Rows after dropping Rest Phase: %d  (removed %d rows)\n",
+    nrow(processed_data), 228))  # 2 rest rows × 114 participants
+
+write.csv(processed_data, "data/processed/cleaned_data.csv", row.names = FALSE)
+cat("Saved updated cleaned_data.csv with block_id column.\n")
+
+```
+
+================================================================================
+File: src/preprocessing/03_validate_participants.R
+================================================================================
+
+```
+# now to analyse all the types of sentences (target, validation, etc) and find invalid participants
+# load the cleaned data with practice rows removed
+library(dplyr)
+
+processed_data <- read.csv("data/processed/cleaned_data.csv")
+
+# ── Step 1: Sentence type counts per participant (sanity check) ───────────────
+sentence_counts <- processed_data |>
+  filter(Event == "Sentence shown") |>
+  group_by(participant_id) |>
+  summarise(
+    n_target_enc   = sum(isTarget == TRUE  & (is.na(isRepeat) | isRepeat == FALSE)),
+    n_target_probe = sum(isTarget == TRUE  & isRepeat == TRUE),
+    n_validation   = sum(isValidation == TRUE & isRepeat == TRUE),  # validation repeats
+    n_filler       = sum(isTarget == FALSE & isValidation == FALSE),
+    n_total        = n(),
+    .groups = "drop"
+  )
+cat("── Sentence type breakdown per participant (first 6):\n")
+print(head(sentence_counts))
+
+cat("\nSummary across all participants:\n")
+print(summary(sentence_counts[, -1]))
+
+# ── Step 2: Compute validation counts per participant × block ─────────────────
+# Three event types feed into the formula:
+#   "Validation IR pressed"       → correct_val  (hit on a validation repeat)
+#   "Validation Wrong IR pressed" → wrong_ir      (spacebar on a non-repeat)
+#   "Validation Missed"           → missed_val    (no spacebar on a validation repeat)
+
+validation_counts <- processed_data |>
+  filter(block_id %in% c(1, 2, 3)) |>
+  group_by(participant_id, block_id) |>
+  summarise(
+    correct_val = sum(Event == "Validation IR pressed"),
+    wrong_ir    = sum(Event == "Validation Wrong IR pressed"),
+    missed_val  = sum(Event == "Validation Missed"),
+    .groups     = "drop"
+  )
+cat("\n── Validation counts (first 10 rows):\n")
+print(head(validation_counts, 10))
+
+# ── Step 3: Apply validation formula ─────────────────────────────────────────
+# correct_val > (wrong_ir / 2) + missed_val
+validation_counts <- validation_counts |>
+  mutate(
+    threshold   = (wrong_ir / 2) + missed_val,
+    block_valid = correct_val > threshold
+  )
+cat("\n── Validation results (first 10 rows):\n")
+print(head(validation_counts, 10))
+
+# ── Step 4: Block-level pass/fail summary ─────────────────────────────────────
+cat("\n── Block-level pass/fail:\n")
+block_summary <- validation_counts |>
+  group_by(block_id) |>
+  summarise(
+    n_pass    = sum(block_valid),
+    n_fail    = sum(!block_valid),
+    pass_rate = round(mean(block_valid) * 100, 1),
+    .groups   = "drop"
+  )
+print(block_summary)
+
+# ── Step 5: Participant-level summary ─────────────────────────────────────────
+participant_summary <- validation_counts |>
+  group_by(participant_id) |>
+  summarise(
+    blocks_passed = sum(block_valid),
+    blocks_failed = sum(!block_valid),
+    all_pass      = all(block_valid),
+    .groups       = "drop"
+  )
+
+cat("\n── Participants by number of valid blocks:\n")
+print(table(participant_summary$blocks_passed))
+
+cat(sprintf("\nAll 3 blocks valid  : %d participants\n", sum(participant_summary$all_pass)))
+cat(sprintf("1-2 blocks valid    : %d participants\n", sum(!participant_summary$all_pass & participant_summary$blocks_passed > 0)))
+cat(sprintf("0 blocks valid      : %d participants\n", sum(participant_summary$blocks_passed == 0)))
+
+# ── Step 6: Flag failing blocks in detail ────────────────────────────────────
+cat("\n── Failed blocks (showing why each failed):\n")
+failed <- validation_counts |>
+  filter(!block_valid) |>
+  arrange(participant_id, block_id)
+print(failed)
+
+cat(sprintf("\nTotal valid blocks   : %d / %d (%.1f%%)\n",
+    sum(validation_counts$block_valid),
+    nrow(validation_counts),
+    mean(validation_counts$block_valid) * 100))
+
+# ── Step 7: Attach block_valid back to trial data ────────────────────────────
+# This is the key column every downstream script filters on.
+processed_data <- processed_data |>
+  left_join(
+    validation_counts |> select(participant_id, block_id, block_valid),
+    by = c("participant_id", "block_id")
+  )
+
+cat(sprintf("\nblock_valid attached: TRUE=%d  FALSE=%d  NA=%d\n",
+    sum(processed_data$block_valid == TRUE,  na.rm = TRUE),
+    sum(processed_data$block_valid == FALSE, na.rm = TRUE),
+    sum(is.na(processed_data$block_valid))))
+
+# ── Step 8: Save ──────────────────────────────────────────────────────────────
+write.csv(processed_data,       "data/processed/pruned_data.csv",         row.names = FALSE)
+write.csv(validation_counts,    "data/processed/validation_report.csv",     row.names = FALSE)
+write.csv(participant_summary,  "data/processed/participant_validity.csv",  row.names = FALSE)
+
+cat("\nSaved: pruned_data.csv, validation_report.csv, participant_validity.csv\n")
+
+
+```
+
+================================================================================
+File: src/preprocessing/01_load_and_combine.R
+================================================================================
+
+```
+# This script is for loading and validating the log files in the data directory.
+
+data_dir <- "data/raw"
+
+# number of files in the data directory
+num_files <- length(list.files(data_dir))
+print(paste("Number of files in the data directory:", num_files))
+
+# each log file contains comma-separated values (CSV) with some columns.
+# ill load all the columns only from each file first and validate if each file has the same columns. If not, flag the files with missing columns.
+
+files <- list.files(data_dir, full.names = TRUE)
+
+column_names <- function(file) {
+  data <- read.csv(file, nrows = 1, fileEncoding = "UTF-8-BOM") # read only the first row to get column names
+  return(colnames(data))
+}
+
+columns_list <- lapply(files, column_names)
+
+# check if all files have the same columns
+unique_columns <- unique(columns_list)
+
+if (length(unique_columns) == 1) {
+  print("All files have the same columns. The columns are:")
+  print(unique_columns[[1]])
+} else {
+  print("Files have different columns. Here are the unique column sets:")
+  print(unique_columns)
+}
+
+# row count for each file
+row_counts <- sapply(files, function(file) {
+  data <- read.csv(file, fileEncoding = "UTF-8-BOM")
+  return(nrow(data))
+})
+
+# rows which have different row counts
+if (length(unique(row_counts)) == 1) {
+  print("All files have the same number of rows. The row count is:")
+  print(unique(row_counts))
+} else {
+  print("Files have different row counts. Here are the row counts for each file:")
+  print(data.frame(file = files, row_count = row_counts))
+}
+
+# load final dataframe with all files combined
+load_log <- function(file) {
+  df             <- read.csv(file, fileEncoding = "UTF-8-BOM", na.strings = "N/A")
+  df$participant_id <- as.integer(tools::file_path_sans_ext(basename(file)))
+  return(df)
+}
+
+all_data <- do.call(rbind, lapply(files, load_log))
+all_data <- all_data[, c("participant_id", setdiff(colnames(all_data), "participant_id"))]
+
+all_data$isTarget <- all_data$isTarget == "true"
+all_data$isRepeat <- all_data$isRepeat == "true"
+all_data$isValidation <- all_data$isValidation == "true"
+
+cat(sprintf("\nCombined data frame has %d rows and %d columns from %d participants.\n", nrow(all_data), ncol(all_data), length(unique(all_data$participant_id))))
+
+# saving the generated data frame to a new file for future use
+output_file <- "data/processed/combined_data.csv"
+write.csv(all_data, output_file, row.names = FALSE)
+cat(sprintf("Combined data frame saved to %s\n", output_file))
+
+```
+
+================================================================================
+File: src/main.R
+================================================================================
+
+```
+# Main Execution Script for Sentence Memorability Study
+
+# 1. PREPROCESSING PHASE
+cat("\n--- Phase 1: Preprocessing ---\n")
+source("src/preprocessing/01_load_and_combine.R")
+source("src/preprocessing/02_clean_events.R")
+source("src/preprocessing/03_validate_participants.R")
+source("src/preprocessing/04_finalize_dataset.R")
+
+# 2. ANALYSIS PHASE
+cat("\n--- Phase 2: Statistical Analysis ---\n")
+source("src/analysis/stats/05_statistical_tests.R")
+
+# 3. VISUALIZATION PHASE
+cat("\n--- Phase 3: Data Visualization ---\n")
+source("src/analysis/visualization/06_generate_plots.R")
+
+cat("\n--- COMPLETE ---\n")
 
 ```
 
