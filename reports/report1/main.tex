@@ -26,6 +26,9 @@
 \usepackage{xcolor}
 \usepackage[nosep]{enumitem}
 \usepackage[compact]{titlesec}
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalsize\itshape}{\thesubsubsection}{1em}{}
 \setlength{\textfloatsep}{10pt plus 1.0pt minus 2.0pt}
 \setlength{\intextsep}{10pt plus 1.0pt minus 2.0pt}
 \setlength{\floatsep}{10pt plus 1.0pt minus 2.0pt}
@@ -42,7 +45,7 @@
 \vspace{0.5em}
 
 % ============================================================
-\section{\normalsize Introduction and Background}
+\section{Introduction and Background}
 % ============================================================
 
 \subsection{Overview}
@@ -96,7 +99,7 @@ The present experiment draws upon the continuous recognition paradigm and noun-m
 This experiment extends \citet{james1973} from free recall to a continuous recognition paradigm, tests Begg's prediction that memorability selectively affects gist but not wording retention, and does so at large online scale. The dual IR+WR response design allows a within-paradigm dissociation of semantic and syntactic memory traces.
 
 % ============================================================
-\section{\normalsize Methods}
+\section{Methods}
 % ============================================================
 
 \subsection{Participants}
@@ -181,7 +184,7 @@ Normality of the key metrics was assessed using \textbf{Shapiro-Wilk tests}. All
 We conducted Kruskal-Wallis rank-sum tests to assess differences across noun conditions (effect size: $\epsilon^2$), followed by post-hoc Wilcoxon rank-sum tests with Holm correction where applicable. The interaction between noun condition and voice was tested using \textbf{Scheirer-Ray-Hare tests} (the non-parametric analogue of a two-way ANOVA). Voice main effects and chance-level performance were tested using paired and one-sample Wilcoxon signed-rank tests, respectively.
 
 % ============================================================
-\section{\normalsize Results}
+\section{Results}
 % ============================================================
 
 \subsection{Overview}
@@ -272,12 +275,12 @@ Scheirer-Ray-Hare tests evaluated the noun condition $\times$ voice interaction 
 
 \subsection{Overall Voice Effects and Wording Discriminability}
 
-Paired Wilcoxon signed-rank tests (collapsed across noun conditions) showed no significant voice effect on Corrected IR ($V = 1916.5$, $p = .485$; Active $M = 0.668$, Passive $M = 0.677$) or WR Accuracy ($V = 3520.5$, $p = .114$; Active $M = 0.756$, Passive $M = 0.734$). Notably, the WR direction (active slightly higher) is consistent with the active-sentence recall bias documented by \citet{james1973}, though it does not reach significance here. Figure~\ref{fig:voice_main} shows per-participant connected paired dot plots, making the negligible within-participant shift apparent.
+Paired Wilcoxon signed-rank tests (collapsed across noun conditions) showed no significant voice effect on Corrected IR ($V = 1916.5$, $p = .485$; Active $M = 0.668$, Passive $M = 0.677$) or WR Accuracy ($V = 3520.5$, $p = .114$; Active $M = 0.756$, Passive $M = 0.734$). Notably, the WR direction (active slightly higher) is consistent with the active-sentence recall bias documented by \citet{james1973}, though it does not reach significance here. Figure~\ref{fig:voice_main} shows within-participant differences (Active $-$ Passive), revealing that these distributions are tightly centred on zero.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.9\textwidth]{plots/10_voice_paired_dots.png}
-  \caption{Per-participant voice comparison (connected paired dot plot). Each line is one participant; lines are nearly horizontal for both IR~CR (left) and WR~Acc (right), confirming negligible voice main effects. Active $>$ Passive for WR is directionally consistent with active-sentence bias.}
+  \caption{Within-participant voice differences (Active $-$ Passive) for Corrected IR (left) and WR Accuracy (right). Both distributions are centred near zero with no systematic skew, confirming no individual-level voice bias. Dashed line = zero effect.}
   \label{fig:voice_main}
 \end{figure}
 
@@ -303,7 +306,7 @@ One-sample Wilcoxon tests confirmed WR accuracy significantly exceeded chance~(0
 A Kruskal-Wallis test on IR reaction times (Figure~\ref{fig:rt_qq}a) found no significant differences across noun conditions ($H(3) = 6.05$, $p = .109$, $\epsilon^2 = 0.007$). However, the pattern is directionally notable: Passive LL sentences produced the longest mean RT ($M = 1808$~ms) while Active HL sentences were the fastest ($M = 1664$~ms), a 144~ms spread consistent with the hierarchy seen in Corrected IR scores. This trend may become significant with greater power. Q-Q plots (Figure~\ref{fig:rt_qq}b) confirm the heavy-tailed, bounded distributions that necessitated non-parametric tests throughout.
 
 % ============================================================
-\section{\normalsize Discussion and Conclusion}
+\section{Discussion and Conclusion}
 % ============================================================
 
 This study embedded classic sentence memory paradigms into a large-scale, online continuous recognition task, testing how noun memorability influences both semantic recognition (Corrected IR) and syntactic retention (WR Accuracy).
@@ -333,7 +336,7 @@ Future research should focus on practical, data-driven analyses using the curren
 % ============================================================
 %  Code and Data Availability
 % ============================================================
-\section{\normalsize Code and Data Availability}
+\section{Code and Data Availability}
 
 {\small
 All raw and processed data, R scripts detailing the data cleaning and statistical analysis pipeline, and source code for this report are available on GitHub: 
@@ -343,6 +346,13 @@ All raw and processed data, R scripts detailing the data cleaning and statistica
 \end{quote}
 
 It is currently private, and thus please reach out to the team for access.
+
+\subsection*{Team Contributions}
+\begin{itemize}[noitemsep]
+  \item \textbf{Shreyas Deb:} Developed the end-to-end data processing pipeline in R, wrote the scripts for automated data cleaning, validation, and exclusion, and generated all summary visualizations and figures used throughout the report. Shreyas also structured and compiled the final LaTeX document.
+  \item \textbf{Yajat Lakhanpal:} Designed and executed the inferential statistical analysis framework, formulating the Kruskal-Wallis omnibus tests, performing all Holm-corrected post-hoc Wilcoxon comparisons, and interpreting the paired voice effect outcomes to support the theoretical claims.
+  \item \textbf{Prasoon Dev:} Spearheaded the literature review and theoretical framing, synthesizing foundational work by Bregman \& Stewart (1968), Begg (1971), and James (1973) to formally define the core research hypotheses and map the findings back to reconstructive memory models.
+\end{itemize}
 }
 
 {\small

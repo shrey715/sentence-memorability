@@ -245,67 +245,42 @@ ggplot(cr_scores, aes(x = voice, y = wr_acc_score, fill = voice)) +
     theme_pub
 save_plot("outputs/plots/09_wr_acc_by_voice.png")
 
-# ── Plot 10: Voice Paired Dot Plot ──────────────────────────────────────────
-cat("  [10/10] Voice paired dot plot (IR CR + WR Acc)...\n")
+# ── Plot 10: Within-Participant Voice Differences ──────────────────────────
+cat("  [10/10] Voice difference distribution plot...\n")
 
-# Build per-participant voice means: long format
-voice_long <- cr_scores %>%
+# Per-participant Active - Passive difference for each metric
+voice_diff <- cr_scores %>%
     group_by(participant_id, voice) %>%
     summarise(
         ir_cr_mean = mean(ir_cr, na.rm = TRUE),
         wr_acc_mean = mean(wr_acc_score, na.rm = TRUE),
         .groups = "drop"
     ) %>%
-    tidyr::pivot_longer(
-        cols = c(ir_cr_mean, wr_acc_mean),
-        names_to = "metric",
-        values_to = "value"
+    tidyr::pivot_wider(names_from = voice, values_from = c(ir_cr_mean, wr_acc_mean)) %>%
+    dplyr::transmute(
+        participant_id,
+        `Corrected IR`  = ir_cr_mean_Active - ir_cr_mean_Passive,
+        `WR Accuracy`   = wr_acc_mean_Active - wr_acc_mean_Passive
     ) %>%
-    dplyr::mutate(metric = dplyr::recode(metric,
-        ir_cr_mean  = "Corrected IR",
-        wr_acc_mean = "WR Accuracy"
-    ))
+    tidyr::pivot_longer(
+        cols = c(`Corrected IR`, `WR Accuracy`),
+        names_to = "metric", values_to = "diff"
+    )
 
-# Wide for connecting lines
-voice_wide <- voice_long %>%
-    tidyr::pivot_wider(names_from = voice, values_from = value)
-
-ggplot() +
-    geom_segment(
-        data = voice_wide,
-        aes(x = 1, xend = 2, y = Active, yend = Passive),
-        colour = "gray70", alpha = 0.5, linewidth = 0.3
+ggplot(voice_diff, aes(x = diff)) +
+    geom_histogram(aes(y = after_stat(density)),
+        bins = 25,
+        fill = "#56B4E9", colour = "white", alpha = 0.8
     ) +
-    geom_point(
-        data = dplyr::filter(voice_long, voice == "Active"),
-        aes(x = 1, y = value), colour = "#0072B2",
-        size = 1.5, alpha = 0.5
-    ) +
-    geom_point(
-        data = dplyr::filter(voice_long, voice == "Passive"),
-        aes(x = 2, y = value), colour = "#D55E00",
-        size = 1.5, alpha = 0.5
-    ) +
-    # Group means as diamonds
-    stat_summary(
-        data = dplyr::mutate(voice_long,
-            x_pos = dplyr::if_else(voice == "Active", 1, 2)
-        ),
-        aes(x = x_pos, y = value),
-        fun = mean, geom = "point", size = 4, shape = 18, colour = "black"
-    ) +
-    scale_x_continuous(
-        breaks = c(1, 2), labels = c("Active", "Passive"),
-        expand = expansion(add = 0.4)
-    ) +
-    geom_hline(yintercept = 0.5, linetype = "dotted", colour = "gray40") +
-    facet_wrap(~metric, scales = "free_y") +
+    geom_density(colour = "#0072B2", linewidth = 0.9) +
+    geom_vline(xintercept = 0, linetype = "dashed", colour = "black", linewidth = 0.8) +
+    facet_wrap(~metric, scales = "free") +
     labs(
-        title = "Per-Participant Voice Effect: Active vs. Passive",
-        subtitle = "Lines = individual participants; diamonds = group means; dotted = chance",
-        x = "Voice", y = "Score"
+        title = "Voice Effect: Active \u2212 Passive (per participant)",
+        subtitle = "Dashed line = zero; centred distribution indicates no systematic voice bias",
+        x = "Difference (Active \u2212 Passive)", y = "Density"
     ) +
     theme_pub
-save_plot("outputs/plots/10_voice_paired_dots.png", width = 8, height = 5)
+save_plot("outputs/plots/10_voice_paired_dots.png", width = 8, height = 4)
 
 cat("  All plots saved to outputs/plots/\n")
