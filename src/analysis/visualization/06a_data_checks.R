@@ -13,7 +13,7 @@ dir.create("outputs/plots", showWarnings = FALSE, recursive = TRUE)
 # (Sentence shown, is_target_sentence = TRUE, not a probe repeat)
 enc <- df %>%
   filter(
-    event_type         == "Sentence shown",
+    event_type == "Sentence shown",
     is_target_sentence == TRUE | is_target_sentence == "TRUE",
     is.na(is_probe_repeat) | is_probe_repeat == FALSE | is_probe_repeat == "FALSE"
   )
@@ -28,17 +28,21 @@ per_part <- enc %>%
   group_by(participant_id) %>%
   summarise(n_sentences = n(), .groups = "drop")
 
-cat(sprintf("    min=%d  median=%.0f  max=%d  (expected: 48 per participant)\n",
-            min(per_part$n_sentences),
-            median(per_part$n_sentences),
-            max(per_part$n_sentences)))
+cat(sprintf(
+  "    min=%d  median=%.0f  max=%d  (expected: 48 per participant)\n",
+  min(per_part$n_sentences),
+  median(per_part$n_sentences),
+  max(per_part$n_sentences)
+))
 
 ggplot(per_part, aes(x = n_sentences)) +
-  geom_histogram(binwidth = 1, fill = "gray50", colour = "white") +
+  geom_histogram(binwidth = 1, fill = "#56B4E9", colour = "white") +
   geom_vline(aes(xintercept = 48, linetype = "Expected (48)"), colour = "black", linewidth = 0.8) +
   scale_linetype_manual(name = NULL, values = c("Expected (48)" = "dashed")) +
-  labs(title = "Target Sentences Shown per Participant",
-       x = "Number of sentences", y = "Number of participants") +
+  labs(
+    title = "Target Sentences Shown per Participant",
+    x = "Number of sentences", y = "Number of participants"
+  ) +
   theme_minimal(base_size = 13) +
   theme(plot.title = element_text(face = "bold"), legend.position = "top")
 ggsave("outputs/plots/00a_sentences_per_participant.png", width = 7, height = 5, dpi = 200)
@@ -57,10 +61,12 @@ for (i in seq_len(nrow(cond_dist))) {
 }
 
 ggplot(cond_dist, aes(x = noun_condition, y = n)) +
-  geom_col(width = 0.6, fill = "gray50", colour = "white") +
+  geom_col(width = 0.6, fill = "#56B4E9", colour = "white") +
   geom_text(aes(label = n), vjust = -0.4, size = 4) +
-  labs(title = "Encoding Trials by Noun Condition",
-       x = "Noun Condition", y = "Total encoding trials") +
+  labs(
+    title = "Encoding Trials by Noun Condition",
+    x = "Noun Condition", y = "Total encoding trials"
+  ) +
   theme_minimal(base_size = 13) +
   theme(plot.title = element_text(face = "bold"))
 ggsave("outputs/plots/00b_trials_by_noun_condition.png", width = 7, height = 5, dpi = 200)
@@ -78,10 +84,12 @@ for (i in seq_len(nrow(voice_dist))) {
 }
 
 ggplot(voice_dist, aes(x = voice, y = n)) +
-  geom_col(width = 0.5, fill = "gray50", colour = "white") +
+  geom_col(width = 0.5, fill = "#56B4E9", colour = "white") +
   geom_text(aes(label = n), vjust = -0.4, size = 4) +
-  labs(title = "Encoding Trials by Voice",
-       x = "Voice", y = "Total encoding trials") +
+  labs(
+    title = "Encoding Trials by Voice",
+    x = "Voice", y = "Total encoding trials"
+  ) +
   theme_minimal(base_size = 13) +
   theme(plot.title = element_text(face = "bold"))
 ggsave("outputs/plots/00c_trials_by_voice.png", width = 7, height = 5, dpi = 200)
@@ -102,14 +110,18 @@ print(as.data.frame(cross_wide), row.names = FALSE)
 # Active/Passive: filled vs. outline — dark fill for active (unmarked), light for passive (marked)
 ggplot(cross, aes(x = noun_condition, y = n, fill = voice)) +
   geom_col(position = position_dodge(width = 0.65), width = 0.55, colour = "gray30") +
-  geom_text(aes(label = n), position = position_dodge(width = 0.65),
-            vjust = -0.4, size = 3.5) +
+  geom_text(aes(label = n),
+    position = position_dodge(width = 0.65),
+    vjust = -0.4, size = 3.5
+  ) +
   scale_fill_manual(
-    values = c(Active = "gray30", Passive = "gray80"),
+    values = c(Active = "#0072B2", Passive = "#D55E00"),
     name   = "Voice"
   ) +
-  labs(title = "Encoding Trials: Noun Condition × Voice",
-       x = "Noun Condition", y = "Total encoding trials") +
+  labs(
+    title = "Encoding Trials: Noun Condition × Voice",
+    x = "Noun Condition", y = "Total encoding trials"
+  ) +
   theme_minimal(base_size = 13) +
   theme(plot.title = element_text(face = "bold"), legend.position = "top")
 ggsave("outputs/plots/00d_trials_condition_by_voice.png", width = 7, height = 5, dpi = 200)

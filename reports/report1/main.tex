@@ -10,7 +10,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{geometry}
-\geometry{margin=1in}
+\geometry{margin=0.5in}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{amsmath}
@@ -24,30 +24,25 @@
 \usepackage{parskip}
 \usepackage{microtype}
 \usepackage{xcolor}
-\usepackage{enumitem}
-\linespread{1.25}
-
-% ---- title block --------------------------------------------
-\title{%
-  \textbf{Report 1: Preliminary Analysis of\\
-  Noun Imageability and Syntactic Structure\\
-  in Sentence Recognition}\\[6pt]
-  \large Behavioural Research and Statistical Methods
-}
-\author{%
-  \textbf{Idle Death Gamblers}\\[4pt]
-  Shreyas Deb \quad Yajat Lakhanpal \quad Prasoon Dev
-}
-\date{March 2026}
+\usepackage[nosep]{enumitem}
+\usepackage[compact]{titlesec}
+\setlength{\textfloatsep}{10pt plus 1.0pt minus 2.0pt}
+\setlength{\intextsep}{10pt plus 1.0pt minus 2.0pt}
+\setlength{\floatsep}{10pt plus 1.0pt minus 2.0pt}
+\linespread{1.1}
 
 \begin{document}
 
-\maketitle
-\tableofcontents
-\newpage
+\begin{center}
+  \vspace*{-3.5em}
+  {\Large \textbf{Report 1: Sentence Memorability Experiment}}\\[6pt]
+  {\normalsize \textbf{Idle Death Gamblers}}\\[2pt]
+  {\small Shreyas Deb \quad Yajat Lakhanpal \quad Prasoon Dev}
+\end{center}
+\vspace{0.5em}
 
 % ============================================================
-\section{Introduction and Background}
+\section{\normalsize Introduction and Background}
 % ============================================================
 
 \subsection{Overview}
@@ -73,7 +68,9 @@ via the internet.
 % ------------------------------------------------------------
 \subsection{Background and Theoretical Motivation}
 
-The earliest and most influential formal account of sentence memory, the \emph{kernel-plus-tag} hypothesis, was proposed by Miller (1962) and Mehler (1963). This model suggested that sentences are reduced to a stripped-down ``kernel'' proposition, with syntactic features (such as passive voice or negation) stored as independent, forgettable memory trace components. However, \citet{bregman1968} tested and discredited this model. They found that when participants misidentified the syntactic form of a sentence on a first guess, their second guesses still contained information and were reliably above chance ($\chi^2(4) > 20$, $p < .001$). This indicated participants were not retrieving an all-or-none syntactic tag; instead, syntactic form is often reconstructed from other memories, such as imagery and noun salience. 
+Sentence memory can be broadly divided into \textbf{verbatim memory} (the retention of the exact wording and syntactic structure) and \textbf{gist memory} (the retention of the overall meaning). Extensive research demonstrates that gist memory typically lasts much longer than verbatim memory, as people tend to rebuild sentences based on meaning rather than recalling the exact syntactic form.
+
+The earliest and most influential formal account of this phenomenon, the \emph{kernel-plus-tag} hypothesis, was proposed by Miller (1962) and Mehler (1963). This model suggested that sentences are reduced to a stripped-down ``kernel'' proposition, with syntactic features (such as passive voice or negation) stored as independent, forgettable memory trace components. However, \citet{bregman1968} tested and discredited this model. They found that when participants misidentified the syntactic form of a sentence on a first guess, their second guesses still contained information and were reliably above chance ($\chi^2(4) > 20$, $p < .001$). This indicated participants were not retrieving an all-or-none syntactic tag; instead, syntactic form is often reconstructed from other memories, such as imagery and noun salience. 
 
 \citet{begg1971} examined this dissociation directly using a \textbf{continuous recognition paradigm}, which is an approach where participants are presented with a continuous, uninterrupted stream of stimuli. Begg found that the accuracy of meaning judgments decreased with lag ($r = -.996$), while wording judgments were uncorrelated with lag ($r = -.107$). Following Begg and Paivio (1969), who hypothesized that the meaning of a concrete sentence is represented as a spatial image while words are a verbal string, Begg proposed that words are reconstructed from the image at retrieval.
 
@@ -82,28 +79,24 @@ If wording is reconstructed from an image trace, the properties of the words com
 Together, this framework suggests that sentence memory is fundamentally semantic and imagistic, wording is reconstructed rather than retrieved, and reconstruction is anchored by the memorability of constituent nouns.
 
 % ------------------------------------------------------------
-\subsection{Research Question}
+\subsection{Research Hypotheses}
 
-The present experiment draws upon the continuous recognition paradigm and noun-memorability manipulations to address the following central research question:
+The present experiment draws upon the continuous recognition paradigm and noun-memorability manipulations to test the following specific hypotheses:
 
-\begin{quote}
-\textit{How is the memorability of sentences affected by their structure and constituent words?}
-\end{quote}
-
-We evaluate this using Kruskal-Wallis tests and corrected memorability scores.
+\begin{enumerate}[label=\textbf{H\arabic*:}]
+    \item \textbf{(Gist/Meaning):} Sentence memorability (measured via Corrected IR) differs across word memorability conditions (HH, HL, LH, LL).
+    \item \textbf{(Verbatim/Wording):} Word recognition accuracy (WR) is independent of the sentence's meaning trace and will not be significantly affected by word memorability conditions.
+    \item \textbf{(Voice Effect):} Based on reconstructive biases, active voice sentences will show different memorability/wording recognition patterns compared to passive voice sentences.
+\end{enumerate}
 
 % ------------------------------------------------------------
 % ------------------------------------------------------------
 \subsection{Present Study in Context}
 
-The contribution of the present experiment is threefold. First, it tests the noun-memorability effect of \citet{james1973} in a recognition rather than recall paradigm. This is a non-trivial extension: in recall, reconstruction of the missing sentence is required, and a strong image trace directly enables that construction; in recognition, a weaker or more schematic trace may be sufficient to correctly identify a familiar meaning. It is therefore not obvious that the memorability effect should transfer.
-
-Second, the dual-response design (IR + WR) allows a direct test of Begg's prediction that noun memorability selectively affects semantic gist encoding while leaving voice/wording memory unaffected. This separation of meaning and wording judgments within the same paradigm has seldom been combined with the noun-memorability manipulation.
-
-Third, by administering the experiment online at scale, the study moves the classic laboratory findings into an ecologically broader context, testing their generality with a large and demographically varied participant pool. This also provides the sample-size power needed to detect the interaction effects between noun condition and voice that have not previously been estimated for recognition paradigms.
+This experiment extends \citet{james1973} from free recall to a continuous recognition paradigm, tests Begg's prediction that memorability selectively affects gist but not wording retention, and does so at large online scale. The dual IR+WR response design allows a within-paradigm dissociation of semantic and syntactic memory traces.
 
 % ============================================================
-\section{Methods}
+\section{\normalsize Methods}
 % ============================================================
 
 \subsection{Participants}
@@ -116,6 +109,7 @@ The study used a \textbf{4 (Noun Condition: HH, HL, LH, LL) $\times$ 2 (Voice: A
 
 \begin{table}[htbp]
   \centering
+  \small
   \begin{tabular}{lll}
     \toprule
     \textbf{Code} & \textbf{Subject Noun} & \textbf{Object Noun} \\
@@ -140,52 +134,38 @@ Sentences were kept short (8 words or fewer), contained no proper nouns, and use
 
 \subsection{Procedure}
 
-Participants completed a \textbf{continuous recognition} task. Each participant saw 48 target sentences across \textbf{3 blocks}. As probes appeared, participants provided judgments regarding whether they recognised the sentence (Immediate Recognition, IR) or whether its grammatical voice matched the original presentation (Wording Recognition, WR).
+Participants completed a \textbf{continuous recognition} task. Each participant saw 48 target sentences across \textbf{3 blocks}. During the task, each sentence was displayed for approximately 4000~ms, followed by an inter-trial interval (gap\_time) of 700--1300~ms. As probes appeared, participants provided judgments regarding whether they recognised the sentence (Immediate Recognition, IR) or whether its grammatical voice matched the original presentation (Wording Recognition, WR).
 
-\subsection{Data Processing Pipeline and Validation}
+\subsection{Preprocessing and Data Pipeline}
 
-\subsubsection{Pipeline Steps}
+The raw behavioral data, comprising 81,329 event-log rows, underwent a multi-stage preprocessing pipeline in R to ensure only high-quality, relevant trials were analyzed.
 
-Individual participant log files were loaded into R. Practice trials and gap-time rows were removed, and blocks were validated using an embedded vigilance formula. Each block was evaluated using the formula:
+\subsubsection{Data Cleaning and Transformation}
+
+Individual participant log files were combined into a single long-format dataset. The dataset structured the telemetry into explicit columns: \texttt{participant\_ID} (identifier), \texttt{Timestamp} (event time), \texttt{Event} (action type), \texttt{Stimulus} (coded identifier for condition), \texttt{isTarget}, \texttt{isValidation}, \texttt{Accuracy\_IR}, \texttt{Accuracy\_WR}, and reaction times (\texttt{Reaction\_time\_IR}, \texttt{Reaction\_time\_WR}).
+
+We applied the following systematic cleaning steps:
+\begin{itemize}[noitemsep]
+    \item \textbf{Filtering:} Removed practice-phase trials, inter-stimulus intervals (gap\_time), and rest-phase markers. Outlier removal for reaction times was deliberately not performed to capture the full distribution of natural responses.
+    \item \textbf{Trial Scoring:} Calculated binary accuracy for Immediate Recognition (IR) and Wording Recognition (WR) based on button-press values.
+    \item \textbf{Feature Extraction:} Stimulus IDs were parsed to extract the factorial levels (HH, HL, LH, LL) and the grammatical voice (Active vs. Passive) of each sentence.
+\end{itemize}
+
+\subsubsection{Vigilance Validation}
+
+To ensure participant engagement, each of the three experimental blocks was evaluated using a built-in vigilance formula. Blocks were only retained if they met the following condition:
 
 \begin{equation*}
   \small
   \text{Correct Validations (IRs)} > \left(\frac{\text{Wrong IRs}}{2}\right) + \text{Missed Validations (IRs)}
 \end{equation*}
 
-Failed blocks were flagged and their trials dropped. Noun condition labels were normalised, and grammatical voice was parsed from each stimulus ID. The final analysis-ready dataset comprised 48,281 event rows from 112 participants across 329 validated blocks (a 97.9\% block pass rate).
+Trials from failed blocks were excluded from the analysis. This process resulted in a final dataset of \textbf{48,281 observations from 112 participants}. The block pass rate was \textbf{96.2\%} (329 out of 342 total blocks), reflecting strong participant adherence to the task instructions.
 
 \subsubsection{Data Quality}
 
-\begin{figure}[htbp]
-  \centering
-  \begin{subfigure}[b]{0.48\textwidth}
-    \includegraphics[width=\textwidth]{plots/00a_sentences_per_participant.png}
-    \caption{Target sentences per participant.}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.48\textwidth}
-    \includegraphics[width=\textwidth]{plots/00b_trials_by_noun_condition.png}
-    \caption{Encoding trials per noun condition.}
-  \end{subfigure}
+Analysis of the cleaned dataset confirms that the experimental design remained perfectly balanced across the retained trials ($N=112$ participants, 5,264 encoding target trials). Specifically, 110 participants contributed a full complement of 48 target sentences, with only two participants yielding fewer (but still valid) trial counts due to block-level exclusions. Furthermore, stimulus allocation was perfectly factorial: each of the four noun conditions contributed exactly 1,316 encoding trials, and each voice condition contributed exactly 2,632 trials. This resulted in exactly 658 trials per experimental cell ($4 \text{ conditions} \times 2 \text{ voices}$), providing a robust foundation for the within-participants statistical tests.
 
-  \vspace{1em}
-
-  \begin{subfigure}[b]{0.48\textwidth}
-    \includegraphics[width=\textwidth]{plots/00c_trials_by_voice.png}
-    \caption{Encoding trials by grammatical voice.}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.48\textwidth}
-    \includegraphics[width=\textwidth]{plots/00d_trials_condition_by_voice.png}
-    \caption{Cross-tabulation of condition by voice.}
-  \end{subfigure}
-
-  \caption{Data integrity checks on the final cleaned dataset ($N=112$ participants). All four plots confirm the experimental design is perfectly balanced across the retained trials.}
-  \label{fig:data_checks}
-\end{figure}
-
-Figure~\ref{fig:data_checks} confirms that the data processing pipeline maintained the intended factorial balance. The four noun conditions and two voice conditions are perfectly balanced across the encoding trials, which is essential for the within-participants statistical tests.
 
 \subsection{Dependent Variables and Statistical Analysis}
 
@@ -201,12 +181,33 @@ Normality of the key metrics was assessed using \textbf{Shapiro-Wilk tests}. All
 We conducted Kruskal-Wallis rank-sum tests to assess differences across noun conditions (effect size: $\epsilon^2$), followed by post-hoc Wilcoxon rank-sum tests with Holm correction where applicable. The interaction between noun condition and voice was tested using \textbf{Scheirer-Ray-Hare tests} (the non-parametric analogue of a two-way ANOVA). Voice main effects and chance-level performance were tested using paired and one-sample Wilcoxon signed-rank tests, respectively.
 
 % ============================================================
-\section{Results}
+\section{\normalsize Results}
 % ============================================================
 
 \subsection{Overview}
 
-A total of \textbf{112 participants} contributed data from \textbf{329 validated blocks} (a 97.9\% pass rate). All key metrics departed significantly from normality (Shapiro-Wilk: Corrected IR $W = 0.94$, $p < .001$; IR RT $W = 0.99$, $p < .001$; WR Accuracy $W = 0.91$, $p < .001$). Consequently, non-parametric tests were used throughout.
+A total of \textbf{112 participants} contributed data from \textbf{329 validated blocks} (96.2\% pass rate), yielding 896 trial-level observations. The global IR false alarm rate was $M = 0.160$ ($SD = 0.104$, range: $0.00$--$0.43$), reflecting meaningful individual response bias that Corrected IR controls for. All key metrics departed significantly from normality (Shapiro-Wilk: IR~CR $W = 0.941$, $p < .001$; IR~RT $W = 0.986$, $p < .001$; WR~Acc $W = 0.911$, $p < .001$), justifying non-parametric inference throughout.
+
+\subsection{Descriptive Statistics by Condition}
+
+A summary of the descriptive statistics for both metrics across the four noun conditions is provided in Table~\ref{tab:descriptives}.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{lcccc}
+    \toprule
+    \textbf{Cond} & \textbf{Mean (IR CR)} & \textbf{SD (IR CR)} & \textbf{Mean (WR Acc)} & \textbf{SD (WR Acc)} \\
+    \midrule
+    HH & 0.689 & 0.210 & 0.747 & 0.208 \\
+    HL & 0.691 & 0.200 & 0.747 & 0.209 \\
+    LH & 0.679 & 0.209 & 0.762 & 0.203 \\
+    LL & 0.632 & 0.224 & 0.730 & 0.220 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Descriptive statistics (Mean and SD) for Corrected IR and WR Accuracy across noun conditions.}
+  \label{tab:descriptives}
+\end{table}
 
 \subsection{Effect of Noun Condition on Corrected IR}
 
@@ -219,9 +220,23 @@ Per-participant corrected IR scores (hit rate minus false alarm rate, collapsed 
   \label{fig:ir_cr}
 \end{figure}
 
-A Kruskal-Wallis rank-sum test revealed a significant main effect of noun condition on corrected IR, $H(3) = 11.26$, $p = .010$. The effect size was small ($\epsilon^2 = 0.013$).
+A Kruskal-Wallis rank-sum test revealed a significant main effect of noun condition on corrected IR, $H(3) = 11.26$, $p = .010$, $\epsilon^2 = 0.013$ (small). Post-hoc Holm-corrected Wilcoxon tests are summarised in Table~\ref{tab:posthoc}. Only the LL condition was significantly lower than HH and HL ($p = .024$ each); the LL--LH gap approached significance ($p = .077$). This threshold pattern indicates a single high-memorability noun is sufficient to anchor sentence gist.
 
-Post-hoc pairwise Wilcoxon tests (Holm-corrected) showed that LL ($M = 0.632$, $SD = 0.224$) was significantly lower than both HH ($M = 0.689$, $SD = 0.210$, $p = .024$) and HL ($M = 0.691$, $SD = 0.200$, $p = .024$). The LL vs. LH comparison approached significance ($p = .077$). All comparisons among HH, HL, and LH were non-significant ($p = 1.000$). This pattern indicates a threshold effect: the presence of at least one high-memorability noun is sufficient to anchor the sentence in memory.
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{lccc}
+    \toprule
+    & \textbf{HH} & \textbf{HL} & \textbf{LH} \\
+    \midrule
+    HL & 1.000 & & \\
+    LH & 1.000 & 1.000 & \\
+    LL & .024\textsuperscript{*} & .024\textsuperscript{*} & .077 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Post-hoc pairwise Wilcoxon $p$-values (Holm-corrected). *$p < .05$.}
+  \label{tab:posthoc}
+\end{table}
 
 \subsection{Effect of Noun Condition on WR Accuracy}
 
@@ -257,9 +272,16 @@ Scheirer-Ray-Hare tests evaluated the noun condition $\times$ voice interaction 
 
 \subsection{Overall Voice Effects and Wording Discriminability}
 
-Paired Wilcoxon signed-rank tests compared Active vs. Passive voice (collapsed across noun conditions). There were no significant differences between Active and Passive voice for either Corrected IR ($V = 1916.5$, $p = .485$) or WR Accuracy ($V = 3520.5$, $p = .114$).
+Paired Wilcoxon signed-rank tests (collapsed across noun conditions) showed no significant voice effect on Corrected IR ($V = 1916.5$, $p = .485$; Active $M = 0.668$, Passive $M = 0.677$) or WR Accuracy ($V = 3520.5$, $p = .114$; Active $M = 0.756$, Passive $M = 0.734$). Notably, the WR direction (active slightly higher) is consistent with the active-sentence recall bias documented by \citet{james1973}, though it does not reach significance here. Figure~\ref{fig:voice_main} shows per-participant connected paired dot plots, making the negligible within-participant shift apparent.
 
-Crucially, one-sample Wilcoxon signed-rank tests confirmed that WR accuracy significantly exceeded chance (0.5) for both Active ($V = 6317.5$, $p < .001$) and Passive ($V = 6202.0$, $p < .001$) voice presentations. 
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{plots/10_voice_paired_dots.png}
+  \caption{Per-participant voice comparison (connected paired dot plot). Each line is one participant; lines are nearly horizontal for both IR~CR (left) and WR~Acc (right), confirming negligible voice main effects. Active $>$ Passive for WR is directionally consistent with active-sentence bias.}
+  \label{fig:voice_main}
+\end{figure}
+
+One-sample Wilcoxon tests confirmed WR accuracy significantly exceeded chance~(0.5) for both Active ($V = 6317.5$, $p < .001$) and Passive ($V = 6202$, $p < .001$) voice presentations.
 
 \subsection{Reaction Time and Normality Checks}
 
@@ -278,10 +300,10 @@ Crucially, one-sample Wilcoxon signed-rank tests confirmed that WR accuracy sign
   \label{fig:rt_qq}
 \end{figure}
 
-A Kruskal-Wallis test on IR reaction times (Figure~\ref{fig:rt_qq}a) found no differences across noun conditions ($H(3) = 6.05$, $p = .109$). Participants did not take longer to recognize LL sentences despite their lower hit rates. Q-Q plots (Figure~\ref{fig:rt_qq}b) visibly demonstrated the heavy-tailed, bounded nature of the accuracy metrics that necessitated non-parametric ranking procedures.
+A Kruskal-Wallis test on IR reaction times (Figure~\ref{fig:rt_qq}a) found no significant differences across noun conditions ($H(3) = 6.05$, $p = .109$, $\epsilon^2 = 0.007$). However, the pattern is directionally notable: Passive LL sentences produced the longest mean RT ($M = 1808$~ms) while Active HL sentences were the fastest ($M = 1664$~ms), a 144~ms spread consistent with the hierarchy seen in Corrected IR scores. This trend may become significant with greater power. Q-Q plots (Figure~\ref{fig:rt_qq}b) confirm the heavy-tailed, bounded distributions that necessitated non-parametric tests throughout.
 
 % ============================================================
-\section{Discussion and Conclusion}
+\section{\normalsize Discussion and Conclusion}
 % ============================================================
 
 This study embedded classic sentence memory paradigms into a large-scale, online continuous recognition task, testing how noun memorability influences both semantic recognition (Corrected IR) and syntactic retention (WR Accuracy).
@@ -294,35 +316,38 @@ Crucially, while noun memorability affected the retention of meaning, it had \te
 
 \subsection{Theoretical Implications}
 
-These findings align strongly with the dual-process framework proposed by \citet{begg1971}. The dissociation—where noun memorability drives semantic recognition but leaves wording recognition unaffected—supports the notion that meaning is stored holistically (likely as an image trace) while surface wording is reconstructed separately.
+These findings align strongly with the dual-process framework proposed by \citet{begg1971}. The dissociation, where noun memorability drives semantic recognition but leaves wording recognition unaffected, supports the notion that meaning is stored holistically (likely as an image trace) while surface wording is reconstructed separately.
 
 Moreover, the lack of an effect for grammatical voice (active vs. passive) during both IR and WR provides further evidence against the kernel-plus-tag hypothesis \citep{bregman1968}. If voice were stored as an independent, fragile tag appended to a core meaning kernel, recognition of passive sentences would likely decay differently or interact with noun saliency. Instead, participants' robust above-chance ability to detect voice mismatches across all conditions suggests that syntactic form is reconstructed at retrieval, anchored by the semantic substance of the remembered event.
 
 \subsection{Future Directions}
 
-While the continuous recognition paradigm offers fine-grained control over stimulus encoding, the interval between encoding and probe in this task was necessarily short (a matter of minutes). Future research should extend this paradigm by testing retention over much longer intervals (e.g., 24 hours or a week). If syntactic form decays faster than semantic gist, wording recognition should decline steeply over time while semantic recognition remains robust, particularly for high-memorability sentences.
+Future research should focus on practical, data-driven analyses using the current log files to extract further insights. Specific follow-up steps could include:
 
-Additionally, future studies could employ neuroimaging (e.g., fMRI or EEG) during the encoding phase. Given the behavioural evidence that high- and low-memorability sentences are processed differently, one would expect differential activation in regions associated with visual imagery and semantic processing (e.g., the declarative memory network) during the initial presentation of HH vs. LL sentences.
+\begin{itemize}
+    \item \textbf{Multivariate Modeling:} Using Generalized Linear Models (GLMs) to evaluate how multiple predictors (word condition, voice, reaction time, and trial position) jointly influence recognition accuracy.
+    \item \textbf{Signal Detection Theory (SDT):} Applying SDT to provide a deeper analysis of sensitivity ($d'$) and response bias ($c$), isolating true discriminability from strategic shifting.
+    \item \textbf{Practice Effects:} Comparing participant performance during the practice phase versus the main experimental blocks to evaluate practice and familiarity effects.
+\end{itemize}
 
 % ============================================================
 %  Code and Data Availability
 % ============================================================
-\section{Code and Data Availability}
+\section{\normalsize Code and Data Availability}
 
-All raw and processed data, R scripts detailing the data cleaning and statistical analysis pipeline, and $\text{\LaTeX}$ source code for this report are available on GitHub: 
+{\small
+All raw and processed data, R scripts detailing the data cleaning and statistical analysis pipeline, and source code for this report are available on GitHub: 
 
 \begin{quote}
 \url{https://github.com/shrey715/sentence-memorability}
 \end{quote}
 
 It is currently private, and thus please reach out to the team for access.
+}
 
-% ============================================================
-%  (Further sections – Methods, Results, Conclusion –
-%   will be added in subsequent iterations of this document)
-% ============================================================
-
+{\small
 \bibliographystyle{plainnat}
 \bibliography{references}
+}
 
 \end{document}
