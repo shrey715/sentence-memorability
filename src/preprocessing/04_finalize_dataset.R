@@ -1,7 +1,7 @@
 library(dplyr)
 library(stringr)
 
-cat("\n[04_finalize_dataset] Normalizing conditions, parsing voice, trimming RT outliers...\n")
+cat("\n[04_finalize_dataset] Normalizing conditions and parsing voice...\n")
 
 df <- read.csv("data/processed/pruned_data.csv", stringsAsFactors = FALSE)
 rows_before <- nrow(df)
@@ -36,29 +36,12 @@ voice_counts <- table(df$voice)
 for (i in seq_along(voice_counts)) {
   cat(sprintf("    %-10s : %d rows\n", names(voice_counts)[i], voice_counts[i]))
 }
-
-na_ir_before <- sum(is.na(df$ir_reaction_time_ms))
-na_wr_before <- sum(is.na(df$wr_reaction_time_ms))
-
-df <- df %>%
-  group_by(participant_id) %>%
-  mutate(
-    ir_rt_mean = mean(ir_reaction_time_ms, na.rm = TRUE),
-    ir_rt_sd   = sd(ir_reaction_time_ms,   na.rm = TRUE),
-    wr_rt_mean = mean(wr_reaction_time_ms, na.rm = TRUE),
-    wr_rt_sd   = sd(wr_reaction_time_ms,   na.rm = TRUE)
-  ) %>%
-  ungroup() %>%
-  mutate(
-    ir_reaction_time_ms = if_else(!is.na(ir_reaction_time_ms) & (ir_reaction_time_ms < 200 | ir_reaction_time_ms > ir_rt_mean + 3 * ir_rt_sd), NA_real_, ir_reaction_time_ms),
-    wr_reaction_time_ms = if_else(!is.na(wr_reaction_time_ms) & (wr_reaction_time_ms < 200 | wr_reaction_time_ms > wr_rt_mean + 3 * wr_rt_sd), NA_real_, wr_reaction_time_ms)
-  ) %>% select(-ir_rt_mean, -ir_rt_sd, -wr_rt_mean, -wr_rt_sd)
-
-ir_trimmed <- sum(is.na(df$ir_reaction_time_ms)) - na_ir_before
-wr_trimmed <- sum(is.na(df$wr_reaction_time_ms)) - na_wr_before
-cat(sprintf("\n  RT outliers trimmed (< 200ms or > mean+3SD per participant):\n"))
-cat(sprintf("    IR reaction time : %d values set to NA\n", ir_trimmed))
-cat(sprintf("    WR reaction time : %d values set to NA\n", wr_trimmed))
+cat("\n  Voice distribution by noun condition:\n")
+voice_cond_counts <- df %>%
+  group_by(noun_condition, voice) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  tidyr::pivot_wider(names_from = voice, values_from = count, values_fill = 0)
+print(as.data.frame(voice_cond_counts), row.names = FALSE)
 
 cat(sprintf("\n  Final dataset : %d rows × %d cols | %d participants\n",
             nrow(df), ncol(df), length(unique(df$participant_id))))

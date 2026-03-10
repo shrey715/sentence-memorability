@@ -61,8 +61,7 @@ if (exists("stat_dir")) {
   cat(sprintf("  Saved -> %s/validation_summary.txt\n", stat_dir))
 }
 
-df <- df %>% left_join(validation_counts %>% select(participant_id, block_id, block_valid),
-                       by = c("participant_id", "block_id"))
+df <- df %>% left_join(validation_counts %>% select(participant_id, block_id, block_valid), by = c("participant_id", "block_id"))
 
 write.csv(validation_counts, "data/processed/validation_report.csv", row.names = FALSE)
 write.csv(df, "data/processed/pruned_data.csv", row.names = FALSE)

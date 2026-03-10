@@ -17,7 +17,8 @@ df <- df %>%
   group_by(participant_id) %>%
   mutate(block_id = cumsum(event_type == "Rest Phase started") + 1L) %>%
   filter(block_id <= 3L) %>%
-  ungroup()
+  ungroup() %>%
+  filter(event_type != "Rest Phase started")
 
 rows_final <- nrow(df)
 cat(sprintf("  Rows after block capping (<=3)  : %d\n", rows_final))
@@ -42,6 +43,30 @@ cat(sprintf("    min=%.0f  median=%.0f  max=%.0f  n_participants=%d\n",
             median(target_enc_counts$n_targets),
             max(target_enc_counts$n_targets),
             nrow(target_enc_counts)))
+
+cat("\n  Final event types and counts:\n")
+event_type_counts <- df %>%
+  group_by(event_type) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  arrange(desc(count))
+print(as.data.frame(event_type_counts), row.names = FALSE)
+
+extract_stimulus_from_id <- function(stimulus_id) { # stimulus_id format: "<sentence_type>_<number>_<voice>"
+  parts <- strsplit(stimulus_id, "_")[[1]]
+  if (length(parts) >= 3) {
+    return(parts[1]) # Return the sentence_type part
+  } else {
+    return(NA) # Return NA if format is unexpected
+  }
+}
+
+cat("\n  Final stimulus types and counts:\n")
+stimulus_type_counts <- df %>%
+  mutate(stimulus_type = extract_stimulus_from_id(stimulus_id)) %>%
+  group_by(stimulus_type) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  arrange(desc(count))
+print(as.data.frame(stimulus_type_counts), row.names = FALSE)
 
 write.csv(df, "data/processed/cleaned_data.csv", row.names = FALSE)
 cat(sprintf("  Saved -> data/processed/cleaned_data.csv\n"))

@@ -1,12 +1,6 @@
 Shapiro-Wilk Normality Tests
 =============================
-       metric   n         W                             p_value normal
-        ir_cr 896 0.9405819 0.000000000000000001864522076200096  FALSE
-        ir_rt 890 0.9836244 0.000000019766515570262491720538551  FALSE
- wr_acc_score 890 0.9112245 0.000000000000000000000225493358414  FALSE
-        wr_rt 877 0.8657965 0.000000000000000000000000009938419  FALSE
-           conclusion
- Non-normal (p < .05)
- Non-normal (p < .05)
- Non-normal (p < .05)
- Non-normal (p < .05)
+       metric   n         W                        p_value           conclusion
+        ir_cr 896 0.9405819 0.0000000000000000018645220762 Non-normal (p < .05)
+        ir_rt 890 0.9857438 0.0000001293221248542962263672 Non-normal (p < .05)
+ wr_acc_score 890 0.9112245 0.0000000000000000000002254934 Non-normal (p < .05)
