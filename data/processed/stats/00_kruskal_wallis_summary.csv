@@ -1,0 +1,8 @@
+"Analysis","H","df","p_value","Significant"
+"Corrected IR by noun condition",8.65958461249918,3,0.0341766015567946,"***"
+"WR accuracy by noun condition",1.98122896073782,3,0.576311831013082,"n.s."
+"IR RT by noun condition",4.44186231550888,3,0.217535029105437,"n.s."
+"WR RT by noun condition",2.29722856407595,3,0.513052048441872,"n.s."
+"d' by noun condition",8.60231349906912,3,0.0350734093947902,"***"
+"Criterion c by noun condition",6.16582109180919,3,0.103815542513595,"n.s."
+"Corrected IR by block",2.77099628872907,2,0.250199133455016,"n.s."
