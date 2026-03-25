@@ -1,3 +1,10 @@
+# 02_clean_events.R
+# Drops practice trials and gap_time logging rows, assigns sequential block
+# IDs (1-3) per participant, and caps data to 3 experimental blocks.
+#
+# Input:  data/processed/combined_data.csv
+# Output: data/processed/cleaned_data.csv
+
 library(dplyr)
 
 cat("\n[02_clean_events] Filtering events and assigning block IDs...\n")
@@ -6,6 +13,9 @@ df <- read.csv("data/processed/combined_data.csv", stringsAsFactors = FALSE)
 rows_before <- nrow(df)
 cat(sprintf("  Input rows : %d\n", rows_before))
 
+# ── Remove non-experiment rows ───────────────────────────────────────────────
+# Practice block events and gap_time rows are infrastructure - not scored.
+# Only keep rows from the main experiment blocks.
 df <- df %>%
   filter(!grepl("^Practice", event_type), event_type != "gap_time")
 rows_after_filter <- nrow(df)
@@ -13,6 +23,10 @@ cat(sprintf("  Removed practice/gap_time rows : %d  (%.1f%%)\n",
             rows_before - rows_after_filter,
             100 * (rows_before - rows_after_filter) / rows_before))
 
+# ── Assign block IDs ─────────────────────────────────────────────────────────
+# Each "Rest Phase started" event marks a block boundary. cumsum() counts
+# these boundaries per participant to produce block numbers 1, 2, 3.
+# Rows beyond block 3 are dropped (edge case: server restarts in some runs).
 df <- df %>%
   group_by(participant_id) %>%
   mutate(block_id = cumsum(event_type == "Rest Phase started") + 1L) %>%

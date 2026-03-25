@@ -33,7 +33,11 @@ dir.create("outputs/plots", showWarnings = FALSE, recursive = TRUE)
 
 cat(sprintf("  Input : %d rows | conditions : HH, HL, LH, LL\n", nrow(cr_scores)))
 
-# ── Shared theme and palette ─────────────────────────────────────────────────
+# ── Shared aesthetics and helpers ────────────────────────────────────────────
+# palette_cond  : colorblind-friendly colors for the 4 noun conditions
+# cond_labels   : human-readable labels used in plot legends/facets
+# theme_pub     : minimal ggplot2 theme applied to all result plots
+# save_plot()   : wrapper that calls ggsave and prints the saved path
 palette_cond <- c(HH = "#E69F00", HL = "#56B4E9", LH = "#009E73", LL = "#CC79A7")
 cond_labels <- c(
     HH = "HH (High-High)", HL = "HL (High-Low)",
@@ -49,6 +53,7 @@ save_plot <- function(path, width = 8, height = 6) {
 
 # ── Plot 01: IR CR by Condition (Raincloud) ──────────────────────────────────
 cat("  [1/7] IR CR by condition (raincloud)...\n")
+# Does noun memorability condition affect how well sentences are recognized? (IR CR)
 ggplot(cr_scores, aes(x = noun_condition, y = ir_cr, fill = noun_condition)) +
     stat_halfeye(
         adjust = 0.6, width = 0.5, justification = -0.3,
@@ -72,6 +77,7 @@ save_plot("outputs/plots/01_ir_cr_by_condition.png")
 
 # ── Plot 02: WR Accuracy by Condition (Raincloud) ───────────────────────────
 cat("  [2/7] WR accuracy by condition (raincloud)...\n")
+# Does noun memorability affect wording recognition accuracy?
 ggplot(cr_scores, aes(x = noun_condition, y = wr_acc_score, fill = noun_condition)) +
     stat_halfeye(
         adjust = 0.6, width = 0.5, justification = -0.3,
@@ -96,6 +102,7 @@ save_plot("outputs/plots/02_wr_acc_by_condition.png")
 
 # ── Plot 03: IR CR Condition x Voice (Interaction) ──────────────────────────
 cat("  [3/7] IR CR condition x voice (interaction bar plot)...\n")
+# Aggregate to condition x voice means ± SE for the interaction bar chart
 ir_voice_summary <- cr_scores %>%
     group_by(noun_condition, voice) %>%
     summarise(
@@ -104,6 +111,7 @@ ir_voice_summary <- cr_scores %>%
         .groups = "drop"
     )
 
+# Is the noun condition effect modulated by grammatical voice? (IR CR interaction)
 ggplot(ir_voice_summary, aes(x = noun_condition, y = mean_ir, fill = voice)) +
     geom_col(position = position_dodge(width = 0.7), width = 0.6, colour = "gray30") +
     geom_errorbar(aes(ymin = mean_ir - se_ir, ymax = mean_ir + se_ir),
@@ -130,6 +138,7 @@ wr_voice_summary <- cr_scores %>%
         .groups = "drop"
     )
 
+# Same interaction for wording recognition accuracy
 ggplot(wr_voice_summary, aes(x = noun_condition, y = mean_wr, fill = voice)) +
     geom_col(position = position_dodge(width = 0.7), width = 0.6, colour = "gray30") +
     geom_errorbar(aes(ymin = mean_wr - se_wr, ymax = mean_wr + se_wr),
@@ -148,8 +157,7 @@ ggplot(wr_voice_summary, aes(x = noun_condition, y = mean_wr, fill = voice)) +
 save_plot("outputs/plots/04_wr_acc_condition_x_voice.png")
 
 # ── Plot 05: IR RT by Condition (Raincloud) ─────────────────────────────────
-cat("  [5/7] IR RT by condition (raincloud)...\n")
-ggplot(cr_scores, aes(x = noun_condition, y = ir_rt, fill = noun_condition)) +
+cat("  [5/7] IR RT by condition (raincloud)...\n")# Does noun memorability affect how quickly participants recognize sentences? (RT)ggplot(cr_scores, aes(x = noun_condition, y = ir_rt, fill = noun_condition)) +
     stat_halfeye(
         adjust = 0.6, width = 0.5, justification = -0.3,
         point_colour = NA, .width = 0, na.rm = TRUE
@@ -171,8 +179,7 @@ ggplot(cr_scores, aes(x = noun_condition, y = ir_rt, fill = noun_condition)) +
 save_plot("outputs/plots/05_ir_rt_by_condition.png")
 
 # ── Plot 06: Q-Q IR CR ──────────────────────────────────────────────────────
-cat("  [6/7] Q-Q plot for IR CR...\n")
-ggplot(cr_scores, aes(sample = ir_cr)) +
+cat("  [6/7] Q-Q plot for IR CR...\n")# Q-Q diagnostic: does IR CR follow a normal distribution? (justifies non-parametric tests)ggplot(cr_scores, aes(sample = ir_cr)) +
     stat_qq(na.rm = TRUE, alpha = 0.4, colour = "gray40") +
     stat_qq_line(na.rm = TRUE, linewidth = 0.7, colour = "black", linetype = "dashed") +
     facet_wrap(~noun_condition, labeller = labeller(noun_condition = cond_labels)) +
@@ -185,8 +192,7 @@ ggplot(cr_scores, aes(sample = ir_cr)) +
 save_plot("outputs/plots/06_qq_ir_cr.png")
 
 # ── Plot 07: Q-Q IR RT ──────────────────────────────────────────────────────
-cat("  [7/7] Q-Q plot for IR RT...\n")
-ggplot(cr_scores, aes(sample = ir_rt)) +
+cat("  [7/7] Q-Q plot for IR RT...\n")# Q-Q diagnostic: same check for IR reaction timeggplot(cr_scores, aes(sample = ir_rt)) +
     stat_qq(na.rm = TRUE, alpha = 0.4, colour = "gray40") +
     stat_qq_line(na.rm = TRUE, linewidth = 0.7, colour = "black", linetype = "dashed") +
     facet_wrap(~noun_condition, labeller = labeller(noun_condition = cond_labels)) +
@@ -222,8 +228,7 @@ ggplot(cr_scores, aes(x = voice, y = ir_cr, fill = voice)) +
 save_plot("outputs/plots/08_ir_cr_by_voice.png")
 
 # ── Plot 09: WR Accuracy by Voice (Raincloud) ───────────────────────────────
-cat("  [9/9] WR accuracy by voice (main effect raincloud)...\n")
-ggplot(cr_scores, aes(x = voice, y = wr_acc_score, fill = voice)) +
+cat("  [9/9] WR accuracy by voice (main effect raincloud)...\n")# Main effect of voice on wording recognition accuracyggplot(cr_scores, aes(x = voice, y = wr_acc_score, fill = voice)) +
     stat_halfeye(
         adjust = 0.6, width = 0.5, justification = -0.3,
         point_colour = NA, .width = 0, na.rm = TRUE
@@ -248,7 +253,7 @@ save_plot("outputs/plots/09_wr_acc_by_voice.png")
 # ── Plot 10: Within-Participant Voice Differences ──────────────────────────
 cat("  [10/10] Voice difference distribution plot...\n")
 
-# Per-participant Active - Passive difference for each metric
+# Compute per-participant Active − Passive difference for each metric
 voice_diff <- cr_scores %>%
     group_by(participant_id, voice) %>%
     summarise(
@@ -267,6 +272,7 @@ voice_diff <- cr_scores %>%
         names_to = "metric", values_to = "diff"
     )
 
+# Distribution of within-participant voice differences - centred near 0 means no systematic voice bias
 ggplot(voice_diff, aes(x = diff)) +
     geom_histogram(aes(y = after_stat(density)),
         bins = 25,

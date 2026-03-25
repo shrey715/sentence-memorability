@@ -1,4 +1,11 @@
-library(dplyr)
+# 01_load_and_combine.R
+# Reads all raw participant .log files from data/raw/, standardizes column
+# names and boolean types, then merges into a single combined_data.csv.
+#
+# Input:  data/raw/*.log  (one file per participant, 14-column CSV)
+# Output: data/processed/combined_data.csv
+
+suppressPackageStartupMessages(library(dplyr))
 
 cat("\n[01_load_and_combine] Loading raw participant log files...\n")
 
@@ -8,9 +15,14 @@ files    <- list.files(data_dir, pattern = "\\.log$", full.names = TRUE)
 if (length(files) == 0) stop("No .log files found in ", data_dir)
 cat(sprintf("  Found %d .log files in '%s'\n", length(files), data_dir))
 
+# ── Per-file loader ──────────────────────────────────────────────────────────
+# Reads one .log file, renames columns to snake_case, and coerces the
+# string "TRUE"/"FALSE" flags to actual logical values (raw CSVs store them
+# as strings, not booleans).
 load_log <- function(file) {
   df <- read.csv(file, fileEncoding = "UTF-8-BOM", na.strings = "N/A", stringsAsFactors = FALSE)
 
+  # Standardize column names from raw log format to snake_case
   df <- df %>%
     rename(
       participant_id         = participant_ID,
@@ -27,6 +39,7 @@ load_log <- function(file) {
       wr_reaction_time_ms    = Reaction_time_WR
     )
 
+  # Raw CSVs export boolean columns as "true"/"false" strings - convert them
   bool_to_logical <- function(x) {
     v <- tolower(trimws(as.character(x)))
     dplyr::case_when(v == "true" ~ TRUE, v == "false" ~ FALSE, TRUE ~ NA)
@@ -39,6 +52,7 @@ load_log <- function(file) {
   return(df)
 }
 
+# Apply loader to every file and stack all participants into one dataframe
 combined_data <- bind_rows(lapply(files, load_log)) %>% select(participant_id, everything())
 
 n_participants <- length(unique(combined_data$participant_id))
