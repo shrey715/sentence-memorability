@@ -157,7 +157,8 @@ ggplot(wr_voice_summary, aes(x = noun_condition, y = mean_wr, fill = voice)) +
 save_plot("outputs/plots/04_wr_acc_condition_x_voice.png")
 
 # ── Plot 05: IR RT by Condition (Raincloud) ─────────────────────────────────
-cat("  [5/7] IR RT by condition (raincloud)...\n")# Does noun memorability affect how quickly participants recognize sentences? (RT)ggplot(cr_scores, aes(x = noun_condition, y = ir_rt, fill = noun_condition)) +
+cat("  [5/7] IR RT by condition (raincloud)...\n")# Does noun memorability affect how quickly participants recognize sentences? (RT)
+ggplot(cr_scores, aes(x = noun_condition, y = ir_rt, fill = noun_condition)) +
     stat_halfeye(
         adjust = 0.6, width = 0.5, justification = -0.3,
         point_colour = NA, .width = 0, na.rm = TRUE
@@ -179,7 +180,8 @@ cat("  [5/7] IR RT by condition (raincloud)...\n")# Does noun memorability affec
 save_plot("outputs/plots/05_ir_rt_by_condition.png")
 
 # ── Plot 06: Q-Q IR CR ──────────────────────────────────────────────────────
-cat("  [6/7] Q-Q plot for IR CR...\n")# Q-Q diagnostic: does IR CR follow a normal distribution? (justifies non-parametric tests)ggplot(cr_scores, aes(sample = ir_cr)) +
+cat("  [6/7] Q-Q plot for IR CR...\n")# Q-Q diagnostic: does IR CR follow a normal distribution? (justifies non-parametric tests)
+ggplot(cr_scores, aes(sample = ir_cr)) +
     stat_qq(na.rm = TRUE, alpha = 0.4, colour = "gray40") +
     stat_qq_line(na.rm = TRUE, linewidth = 0.7, colour = "black", linetype = "dashed") +
     facet_wrap(~noun_condition, labeller = labeller(noun_condition = cond_labels)) +
@@ -192,7 +194,8 @@ cat("  [6/7] Q-Q plot for IR CR...\n")# Q-Q diagnostic: does IR CR follow a norm
 save_plot("outputs/plots/06_qq_ir_cr.png")
 
 # ── Plot 07: Q-Q IR RT ──────────────────────────────────────────────────────
-cat("  [7/7] Q-Q plot for IR RT...\n")# Q-Q diagnostic: same check for IR reaction timeggplot(cr_scores, aes(sample = ir_rt)) +
+cat("  [7/7] Q-Q plot for IR RT...\n")# Q-Q diagnostic: same check for IR reaction time
+ggplot(cr_scores, aes(sample = ir_rt)) +
     stat_qq(na.rm = TRUE, alpha = 0.4, colour = "gray40") +
     stat_qq_line(na.rm = TRUE, linewidth = 0.7, colour = "black", linetype = "dashed") +
     facet_wrap(~noun_condition, labeller = labeller(noun_condition = cond_labels)) +
@@ -228,7 +231,8 @@ ggplot(cr_scores, aes(x = voice, y = ir_cr, fill = voice)) +
 save_plot("outputs/plots/08_ir_cr_by_voice.png")
 
 # ── Plot 09: WR Accuracy by Voice (Raincloud) ───────────────────────────────
-cat("  [9/9] WR accuracy by voice (main effect raincloud)...\n")# Main effect of voice on wording recognition accuracyggplot(cr_scores, aes(x = voice, y = wr_acc_score, fill = voice)) +
+cat("  [9/9] WR accuracy by voice (main effect raincloud)...\n")# Main effect of voice on wording recognition accuracy
+ggplot(cr_scores, aes(x = voice, y = wr_acc_score, fill = voice)) +
     stat_halfeye(
         adjust = 0.6, width = 0.5, justification = -0.3,
         point_colour = NA, .width = 0, na.rm = TRUE
