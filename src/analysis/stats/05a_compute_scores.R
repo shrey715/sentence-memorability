@@ -35,11 +35,15 @@ hf_first_shown <- df %>%
 
 ir_fa_counts <- df %>%
     filter(
-        event_type == "IR pressed",
+        event_type == "Sentence shown",
         noun_condition == "HF",
         is.na(is_probe_repeat)
     ) %>%
-    count(participant_id, name = "n_ir_fa")
+    group_by(participant_id) %>%
+    summarise(
+        n_ir_fa = sum(ir_accuracy == 0, na.rm = TRUE),
+        .groups = "drop"
+    )
 
 fa_rates <- hf_first_shown %>%
     left_join(ir_fa_counts, by = "participant_id") %>%
@@ -84,6 +88,7 @@ cat(sprintf(
 
 # ── 3. WR Accuracy (conditional on IR) ──────────────────────────────────────
 cat("\n  [3/5] Computing WR conditional accuracy...\n")
+cat("    NOTE: WR accuracy is measured only on trials where IR was pressed.\n")
 wr_accuracy_data <- df %>%
     filter(
         event_type == "WR pressed",
@@ -153,11 +158,12 @@ outlier_IR <- cr_scores %>%
 
 rt_stats <- cr_scores %>%
     summarise(
-        mean_rt = mean(ir_rt, na.rm = TRUE),
-        sd_rt   = sd(ir_rt,   na.rm = TRUE)
+        q1 = quantile(ir_rt, 0.25, na.rm = TRUE),
+        q3 = quantile(ir_rt, 0.75, na.rm = TRUE),
+        iqr = IQR(ir_rt, na.rm = TRUE)
     )
-rt_lower <- rt_stats$mean_rt - 3 * rt_stats$sd_rt
-rt_upper <- rt_stats$mean_rt + 3 * rt_stats$sd_rt
+rt_lower <- rt_stats$q1 - 1.5 * rt_stats$iqr
+rt_upper <- rt_stats$q3 + 1.5 * rt_stats$iqr
 
 outlier_RT <- cr_scores %>%
     filter(!is.na(ir_rt), (ir_rt < rt_lower | ir_rt > rt_upper)) %>%
@@ -167,7 +173,7 @@ cat(sprintf("    IR CR range : [%.3f, %.3f] | values < -0.5 : %d\n",
     min(cr_scores$ir_cr, na.rm = TRUE),
     max(cr_scores$ir_cr, na.rm = TRUE),
     nrow(outlier_IR)))
-cat(sprintf("    IR RT range : [%.0f, %.0f] ms | outside mean\u00b13SD [%.0f, %.0f] : %d\n",
+cat(sprintf("    IR RT range : [%.0f, %.0f] ms | outside 1.5*IQR [%.0f, %.0f] : %d\n",
     min(cr_scores$ir_rt, na.rm = TRUE),
     max(cr_scores$ir_rt, na.rm = TRUE),
     rt_lower, rt_upper, nrow(outlier_RT)))
@@ -177,7 +183,7 @@ if (exists("stat_dir")) {
         "=== IR CR: Values below -0.5 ===",
         capture.output(print(as.data.frame(outlier_IR), row.names = FALSE)),
         "",
-        "=== IR RT: Values outside mean \u00b1 3SD ===",
+        "=== IR RT: Values outside 1.5*IQR bounds ===",
         sprintf("  Bounds: %.0f \u2013 %.0f ms", rt_lower, rt_upper),
         capture.output(print(as.data.frame(outlier_RT), row.names = FALSE)),
         "",
@@ -204,16 +210,22 @@ desc_table <- cr_scores %>%
         Median = round(median(value, na.rm = TRUE), 4),
         Min    = round(min(value, na.rm = TRUE), 4),
         Max    = round(max(value, na.rm = TRUE), 4),
-        CI_lower = round({
+        quantiles = list({
             v <- value[!is.na(value)]
-            quantile(replicate(1000, mean(sample(v, replace = TRUE))), 0.025)
-        }, 4),
-        CI_upper = round({
-            v <- value[!is.na(value)]
-            quantile(replicate(1000, mean(sample(v, replace = TRUE))), 0.975)
-        }, 4),
+            if (length(v) > 0) {
+                bs <- replicate(1000, mean(sample(v, replace = TRUE)))
+                quantile(bs, c(0.025, 0.975))
+            } else {
+                c(NA, NA)
+            }
+        }),
         .groups = "drop"
-    )
+    ) %>%
+    mutate(
+        CI_lower = round(sapply(quantiles, `[`, 1), 4),
+        CI_upper = round(sapply(quantiles, `[`, 2), 4)
+    ) %>%
+    select(-quantiles)
 
 cat("\n    Descriptive statistics:\n")
 print(as.data.frame(desc_table), row.names = FALSE)

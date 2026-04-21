@@ -1,0 +1,389 @@
+================================================================
+  Sentence Memorability Study — Analysis Pipeline
+================================================================
+  Run started : 2026-03-10 20:48:46
+  Log file    : outputs/logs/pipeline_run_2026-03-10_20-48-46.log
+  Stats dir   : outputs/stats
+================================================================
+
+
+================================================================
+  PHASE 1: Preprocessing
+================================================================
+
+[01_load_and_combine] Loading raw participant log files...
+  Found 114 .log files in 'data/raw'
+  Loaded    : 81329 rows, 14 columns, 114 participants
+  Columns   : participant_id, event_timestamp_ms, event_type, stimulus_id, is_target_sentence, is_validation_sentence, is_probe_repeat, response_button, ir_accuracy, wr_accuracy, ir_reaction_time_ms, wr_reaction_time_ms, CR_IR, CR_WR
+  Rows/participant  min=626  median=706  max=911
+  Event types present:
+    gap_time                                 25308
+    Sentence shown                           25308
+    IR pressed                               9857
+    WR pressed                               9857
+    Practice Sentence shown                  3420
+    Validation IR pressed                    3231
+    Validation Wrong IR pressed              2082
+    Practice IR pressed                      994
+    Practice WR pressed                      709
+    Rest Phase started                       228
+    Validation Missed                        189
+    Practice Missed                          146
+  Saved -> data/processed/combined_data.csv
+
+[02_clean_events] Filtering events and assigning block IDs...
+  Input rows : 81329
+  Removed practice/gap_time rows : 30577  (37.6%)
+  Rows after block capping (<=3)  : 50524
+
+  Rows per block (across participants):
+ block_id participants min_rows median_rows max_rows
+        1          114      117       155.0      211
+        2          114       98       142.5      199
+        3          114      104       137.5      217
+
+  Target sentences at encoding (expecting 48 per participant):
+    min=48  median=48  max=48  n_participants=114
+
+  Final event types and counts:
+                  event_type count
+              Sentence shown 25308
+                  IR pressed  9857
+                  WR pressed  9857
+       Validation IR pressed  3231
+ Validation Wrong IR pressed  2082
+           Validation Missed   189
+
+  Final stimulus types and counts:
+ stimulus_type count
+            HF 50524
+  Saved -> data/processed/cleaned_data.csv
+
+[03_validate_participants] Applying block-level validation formula...
+  Input rows : 50524 from 114 participants
+
+  Block-level validation (formula: Correct > Wrong/2 + Missed):
+ block_id valid=FALSE valid=TRUE
+        1           6        108
+        2           5        109
+        3           2        112
+
+  Participants total     : 114
+  All 3 blocks passed   : 105  (92.1%)
+  Partial/failed blocks : 9  (7.9%)
+  Saved -> outputs/stats/validation_summary.txt
+  Saved -> data/processed/validation_report.csv, pruned_data.csv
+
+[04_finalize_dataset] Normalizing conditions and parsing voice...
+  Input rows : 50524
+  Rows from failed blocks excluded : 2243
+  Rows retained                   : 48281
+
+  Noun condition distribution (after normalization):
+    HF     : 28328 rows
+    HL     : 5116 rows
+    HH     : 5038 rows
+    LH     : 4944 rows
+    LL     : 4855 rows
+
+  Voice distribution:
+    Active     : 38273 rows
+    Passive    : 10008 rows
+
+  Voice distribution by noun condition:
+ noun_condition Active Passive
+             HF  28328       0
+             HH   2502    2536
+             HL   2567    2549
+             LH   2472    2472
+             LL   2404    2451
+
+  Final dataset : 48281 rows × 17 cols | 112 participants
+  Saved -> data/processed/final_data.csv
+
+
+================================================================
+  PHASE 2: Data Integrity Checks
+================================================================
+
+[06a_data_checks] Data integrity crosschecks...
+  Participants in final data : 112
+  Total encoding target rows : 5264
+  [1/4] Sentences per participant...
+    min=32  median=48  max=48  (expected: 48 per participant)
+  Saved -> outputs/plots/00a_sentences_per_participant.png
+  [2/4] Distribution by noun condition...
+    Noun condition counts (encoding trials):
+      HH   : 1316
+      HL   : 1316
+      LH   : 1316
+      LL   : 1316
+  Saved -> outputs/plots/00b_trials_by_noun_condition.png
+  [3/4] Distribution by voice...
+    Voice counts (encoding trials):
+      Active   : 2632
+      Passive  : 2632
+  Saved -> outputs/plots/00c_trials_by_voice.png
+  [4/4] Condition x Voice crosscheck...
+    Condition x Voice table:
+ noun_condition Active Passive
+             HH    658     658
+             HL    658     658
+             LH    658     658
+             LL    658     658
+  Saved -> outputs/plots/00d_trials_condition_by_voice.png
+  [06a_data_checks] Done.
+
+
+================================================================
+  PHASE 3: Compute Scores & Descriptives
+================================================================
+
+[05a_compute_scores] Computing CR scores, descriptives, and normality checks...
+  Input rows : 48281 | participants : 112
+
+  [1/5] Computing IR false alarm rates from HF first-showings...
+    HF first-showings per participant  min=64  max=96
+    IR FA rate  mean=0.160  sd=0.104  min=0.000  max=0.427
+
+  [2/5] Counting IR hits on target probes...
+    Target probe rows : 896 | IR hit rows : 890
+
+  [3/5] Computing WR conditional accuracy...
+    WR trials recorded : 890 | mean wr_acc_score : 0.747
+
+  [4/5] Computing mean reaction times per condition x voice...
+
+  [5/5] Compiling final CR score table...
+    CR score table : 896 rows x 9 cols
+
+    IR CR summary:
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+-0.1406  0.5521  0.7083  0.6726  0.8438  1.0000 
+
+    WR accuracy summary:
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+ 0.0000  0.6667  0.8000  0.7466  1.0000  1.0000       6 
+
+  Computing per-condition descriptive statistics...
+
+    Descriptive statistics:
+ noun_condition   voice       metric   N      Mean       SD    Median       Min       Max
+             HH  Active        ir_cr 112    0.6826   0.1995    0.7292    0.0208    1.0000
+             HH  Active        ir_rt 112 1676.6452 362.5122 1675.3750  896.0000 3009.0000
+             HH  Active wr_acc_score 112    0.7417   0.1993    0.7500    0.0000    1.0000
+             HH Passive        ir_cr 112    0.6953   0.2198    0.7500   -0.1406    0.9688
+             HH Passive        ir_rt 111 1776.6005 371.6632 1779.0000 1051.8333 2755.3333
+             HH Passive wr_acc_score 111    0.7523   0.2174    0.8000    0.2500    1.0000
+             HL  Active        ir_cr 112    0.6886   0.1947    0.7344    0.0208    0.9479
+             HL  Active        ir_rt 112 1663.7237 413.7767 1627.2500  784.5000 2605.0000
+             HL  Active wr_acc_score 112    0.7751   0.2076    0.8167    0.0000    1.0000
+             HL Passive        ir_cr 112    0.6930   0.2064    0.7396   -0.0521    1.0000
+             HL Passive        ir_rt 111 1795.4841 452.6085 1738.2000  916.8333 3834.0000
+             HL Passive wr_acc_score 111    0.7197   0.2107    0.7500    0.0000    1.0000
+             LH  Active        ir_cr 112    0.6767   0.2022    0.7031   -0.0521    0.9792
+             LH  Active        ir_rt 111 1670.8227 363.0593 1650.6000  868.6667 2654.6667
+             LH  Active wr_acc_score 111    0.7685   0.1942    0.8000    0.3333    1.0000
+             LH Passive        ir_cr 112    0.6811   0.2163    0.7396   -0.0833    0.9583
+             LH Passive        ir_rt 111 1670.1446 375.4603 1619.0000  896.4000 2963.0000
+             LH Passive wr_acc_score 111    0.7547   0.2112    0.8000    0.0000    1.0000
+             LL  Active        ir_cr 112    0.6253   0.2338    0.6406   -0.1406    1.0000
+             LL  Active        ir_rt 110 1717.1044 383.9796 1618.0833  827.3333 2978.0000
+             LL  Active wr_acc_score 110    0.7436   0.2084    0.7500    0.2000    1.0000
+             LL Passive        ir_cr 112    0.6380   0.2147    0.6354    0.1042    1.0000
+             LL Passive        ir_rt 112 1808.0671 410.7218 1749.2500  854.0000 2955.5000
+             LL Passive wr_acc_score 112    0.7173   0.2320    0.7500    0.0000    1.0000
+
+  Shapiro-Wilk normality tests...
+       metric   n         W                        p_value           conclusion
+        ir_cr 896 0.9405819 0.0000000000000000018645220762 Non-normal (p < .05)
+        ir_rt 890 0.9857438 0.0000001293221248542962263672 Non-normal (p < .05)
+ wr_acc_score 890 0.9112245 0.0000000000000000000002254934 Non-normal (p < .05)
+
+    3/3 metrics are non-normal -> non-parametric tests justified.
+
+  Saved tables -> outputs/stats/{fa_rates,descriptive_stats,normality}.txt
+  Saved -> data/processed/cr_scores.csv, descriptive_stats.csv
+
+
+================================================================
+  PHASE 4: Inferential Statistics
+================================================================
+
+[05b_statistical_tests] Running non-parametric inferential statistics...
+  Input : 896 observations | conditions : HH/HL/LH/LL | voices : Active/Passive
+
+  --- Omnibus Tests ---
+
+================================================================ 
+Kruskal-Wallis: Corrected IR ~ noun_condition 
+================================================================ 
+
+	Kruskal-Wallis rank sum test
+
+data:  ir_cr by noun_condition
+Kruskal-Wallis chi-squared = 11.26, df = 3, p-value = 0.0104
+
+  Effect Size (epsilon^2) = 0.0126 
+  Interpretation: small
+
+  Post-hoc Pairwise Wilcoxon (Holm correction) for Corrected IR: 
+
+	Pairwise comparisons using Wilcoxon rank sum test with continuity correction 
+
+data:  cr_scores[[metric_name]] and cr_scores$noun_condition 
+
+   HH    HL    LH   
+HL 1.000 -     -    
+LH 1.000 1.000 -    
+LL 0.024 0.024 0.077
+
+P value adjustment method: holm 
+
+================================================================ 
+Kruskal-Wallis: WR Accuracy ~ noun_condition 
+================================================================ 
+
+	Kruskal-Wallis rank sum test
+
+data:  wr_acc_score by noun_condition
+Kruskal-Wallis chi-squared = 2.5218, df = 3, p-value = 0.4714
+
+  Effect Size (epsilon^2) = 0.0028 
+  Interpretation: negligible
+  No post-hoc test (omnibus p >= .05) 
+
+================================================================ 
+Kruskal-Wallis: IR Reaction Time ~ noun_condition 
+================================================================ 
+
+	Kruskal-Wallis rank sum test
+
+data:  ir_rt by noun_condition
+Kruskal-Wallis chi-squared = 6.0469, df = 3, p-value = 0.1093
+
+  Effect Size (epsilon^2) = 0.0068 
+  Interpretation: negligible
+  No post-hoc test (omnibus p >= .05) 
+
+  --- Interaction Tests (Scheirer-Ray-Hare) ---
+
+================================================================ 
+Scheirer-Ray-Hare: Corrected IR ~ noun_condition * voice 
+================================================================ 
+
+DV:  ir_cr 
+Observations:  896 
+D:  0.9994898 
+MS total:  66976 
+
+                      Df   Sum Sq       H p.value
+noun_condition         3   753788 11.2603 0.01040
+voice                  1    50715  0.7576 0.38408
+noun_condition:voice   3    14610  0.2183 0.97459
+Residuals            888 59093821                
+
+================================================================ 
+Scheirer-Ray-Hare: WR Accuracy ~ noun_condition * voice 
+================================================================ 
+
+DV:  wr_acc_score 
+Observations:  890 
+D:  0.9725897 
+MS total:  66082.5 
+
+                      Df   Sum Sq      H p.value
+noun_condition         3   161329 2.5101 0.47346
+voice                  1    76280 1.1869 0.27597
+noun_condition:voice   3   276066 4.2953 0.23129
+Residuals            882 56622631               
+
+  --- Voice Effects (Paired Wilcoxon Signed-Rank) ---
+
+================================================================ 
+Paired Wilcoxon: Corrected IR Active vs Passive 
+================================================================ 
+
+	Wilcoxon signed rank test with continuity correction
+
+data:  voice_agg$ir_cr_mean_Active and voice_agg$ir_cr_mean_Passive
+V = 1916.5, p-value = 0.4853
+alternative hypothesis: true location shift is not equal to 0
+
+  Active: M=0.668 | Passive: M=0.677
+
+================================================================ 
+Paired Wilcoxon: WR Accuracy Active vs Passive 
+================================================================ 
+
+	Wilcoxon signed rank test with continuity correction
+
+data:  voice_agg$wr_acc_mean_Active and voice_agg$wr_acc_mean_Passive
+V = 3520.5, p-value = 0.1142
+alternative hypothesis: true location shift is not equal to 0
+
+  Active: M=0.756 | Passive: M=0.734
+
+  --- WR vs Chance (One-Sample Wilcoxon) ---
+
+================================================================ 
+One-sample Wilcoxon: WR Active vs chance (0.5) 
+================================================================ 
+
+	Wilcoxon signed rank test with continuity correction
+
+data:  voice_agg$wr_acc_mean_Active
+V = 6317.5, p-value < 0.00000000000000022
+alternative hypothesis: true location is greater than 0.5
+
+
+================================================================ 
+One-sample Wilcoxon: WR Passive vs chance (0.5) 
+================================================================ 
+
+	Wilcoxon signed rank test with continuity correction
+
+data:  voice_agg$wr_acc_mean_Passive
+V = 6202, p-value < 0.00000000000000022
+alternative hypothesis: true location is greater than 0.5
+
+
+  Saved -> outputs/stats/statistical_tests.txt
+
+
+================================================================
+  PHASE 5: Result Visualizations
+================================================================
+
+[06b_results_plots] Generating result visualizations...
+  Input : 896 rows | conditions : HH, HL, LH, LL
+  [1/7] IR CR by condition (raincloud)...
+  Saved -> outputs/plots/01_ir_cr_by_condition.png
+  [2/7] WR accuracy by condition (raincloud)...
+  Saved -> outputs/plots/02_wr_acc_by_condition.png
+  [3/7] IR CR condition x voice (interaction bar plot)...
+  Saved -> outputs/plots/03_ir_cr_condition_x_voice.png
+  [4/7] WR accuracy condition x voice (interaction bar plot)...
+  Saved -> outputs/plots/04_wr_acc_condition_x_voice.png
+  [5/7] IR RT by condition (raincloud)...
+  Saved -> outputs/plots/05_ir_rt_by_condition.png
+  [6/7] Q-Q plot for IR CR...
+  Saved -> outputs/plots/06_qq_ir_cr.png
+  [7/7] Q-Q plot for IR RT...
+  Saved -> outputs/plots/07_qq_ir_rt.png
+  [8/9] IR CR by voice (main effect raincloud)...
+  Saved -> outputs/plots/08_ir_cr_by_voice.png
+  [9/9] WR accuracy by voice (main effect raincloud)...
+  Saved -> outputs/plots/09_wr_acc_by_voice.png
+  [10/10] Voice difference distribution plot...
+  Saved -> outputs/plots/10_voice_paired_dots.png
+  All plots saved to outputs/plots/
+
+
+================================================================
+  Run completed : 2026-03-10 20:48:53
+  PIPELINE COMPLETE
+  Log    -> outputs/logs/pipeline_run_2026-03-10_20-48-46.log
+  Stats  -> outputs/stats/
+  Plots  -> outputs/plots/
+================================================================

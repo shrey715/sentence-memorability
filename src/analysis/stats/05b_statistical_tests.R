@@ -270,13 +270,20 @@ run_srh <- function(metric_col, label) {
     .stat_lines <<- c(.stat_lines, capture.output(print(srh)))
     print(srh)
 
-    # F5: η²_H per term = H_term / sum(H_all_terms)
-    h_vals <- srh$H
-    eta_H  <- round(h_vals / sum(h_vals, na.rm = TRUE), 4)
+    # F5: η²_H per term = (H - (k-1)) / (N - k)
+    N_total <- nrow(cr_scores)
+    k_cond <- nlevels(cr_scores$noun_condition)
+    k_voice <- nlevels(cr_scores$voice)
+    df_int  <- (k_cond - 1) * (k_voice - 1)
+
+    eta_H_cond <- (srh$H[1] - (k_cond - 1)) / (N_total - k_cond)
+    eta_H_voice <- (srh$H[2] - (k_voice - 1)) / (N_total - k_voice)
+    eta_H_int <- (srh$H[3] - df_int) / (N_total - df_int - 1)
+
     .log(
-        sprintf("  eta^2_H (noun_condition) = %.4f", eta_H[1]),
-        sprintf("  eta^2_H (voice)          = %.4f", eta_H[2]),
-        sprintf("  eta^2_H (interaction)    = %.4f", eta_H[3]),
+        sprintf("  eta^2_H (noun_condition) = %.4f", eta_H_cond),
+        sprintf("  eta^2_H (voice)          = %.4f", eta_H_voice),
+        sprintf("  eta^2_H (interaction)    = %.4f", eta_H_int),
         "  (eta^2_H benchmarks: .01 small, .06 medium, .14 large)"
     )
 
@@ -325,7 +332,9 @@ run_srh("wr_acc_score", "WR Accuracy")
 # ── F6: Voice Main Effect — Paired Wilcoxon + Rank-Biserial r ───────────────
 # Collapsed across noun conditions. paired = TRUE was already correct.
 # F6 adds the missing rank-biserial r effect size (class 12.pdf).
-cat("\n  --- Voice Main Effect: Paired Wilcoxon (collapsed) (F6) ---\n")
+# NOTE: These voice tests are treated as EXPLORATORY and are not included in the
+# omnibus family-wise alpha correction. Interpreted without strict FWER control.
+cat("\n  --- Voice Main Effect: Paired Wilcoxon (collapsed) (F6) [EXPLORATORY] ---\n")
 
 voice_agg <- cr_scores %>%
     group_by(participant_id, voice) %>%
@@ -350,15 +359,17 @@ wsr_ir <- wilcox.test(voice_agg$ir_cr_mean_Active, voice_agg$ir_cr_mean_Passive,
 .stat_lines <<- c(.stat_lines, capture.output(print(wsr_ir)))
 print(wsr_ir)
 
-# rank-biserial r: r = Z / sqrt(N)
-N_voice  <- nrow(voice_agg)
-Z_ir     <- qnorm(wsr_ir$p.value / 2) * ifelse(wsr_ir$statistic > 0, 1, -1)
-r_ir     <- abs(Z_ir) / sqrt(N_voice)
+# rank-biserial r: wilcox_effsize(paired=TRUE)
+voice_ir_long <- voice_agg %>%
+    select(participant_id, starts_with("ir_cr_mean_")) %>%
+    pivot_longer(cols = -participant_id, names_to = "voice", names_prefix = "ir_cr_mean_", values_to = "ir_cr")
+r_ir_res <- wilcox_effsize(voice_ir_long, ir_cr ~ voice, paired = TRUE)
+
 .log(
     sprintf("  Active M = %.4f | Passive M = %.4f",
             mean(voice_agg$ir_cr_mean_Active, na.rm = TRUE),
             mean(voice_agg$ir_cr_mean_Passive, na.rm = TRUE)),
-    sprintf("  rank-biserial r = %.4f (|Z| = %.3f, N = %d)", r_ir, abs(Z_ir), N_voice)
+    sprintf("  rank-biserial r = %.4f", r_ir_res$effsize)
 )
 
 # WR Accuracy: Active vs Passive
@@ -372,20 +383,23 @@ wsr_wr <- wilcox.test(voice_agg$wr_acc_mean_Active, voice_agg$wr_acc_mean_Passiv
 .stat_lines <<- c(.stat_lines, capture.output(print(wsr_wr)))
 print(wsr_wr)
 
-Z_wr <- qnorm(wsr_wr$p.value / 2) * ifelse(wsr_wr$statistic > 0, 1, -1)
-r_wr <- abs(Z_wr) / sqrt(N_voice)
+voice_wr_long <- voice_agg %>%
+    select(participant_id, starts_with("wr_acc_mean_")) %>%
+    pivot_longer(cols = -participant_id, names_to = "voice", names_prefix = "wr_acc_mean_", values_to = "wr_acc")
+r_wr_res <- wilcox_effsize(voice_wr_long, wr_acc ~ voice, paired = TRUE)
+
 .log(
     sprintf("  Active M = %.4f | Passive M = %.4f",
             mean(voice_agg$wr_acc_mean_Active, na.rm = TRUE),
             mean(voice_agg$wr_acc_mean_Passive, na.rm = TRUE)),
-    sprintf("  rank-biserial r = %.4f (|Z| = %.3f, N = %d)", r_wr, abs(Z_wr), N_voice)
+    sprintf("  rank-biserial r = %.4f", r_wr_res$effsize)
 )
 
 # ── F6b: Group-Wise Voice Tests — Per Noun Condition ────────────────────────
 # Group-wise: test Active vs. Passive separately within each noun condition.
 # This characterises whether the voice effect is consistent across conditions,
 # complementing the SRH interaction test. Uses paired Wilcoxon signed-rank.
-cat("\n  --- Group-Wise Voice Effect: Per Noun Condition (F6b) ---\n")
+cat("\n  --- Group-Wise Voice Effect: Per Noun Condition (F6b) [EXPLORATORY] ---\n")
 
 .log(
     "\n================================================================",
@@ -429,8 +443,11 @@ for (cond in levels(cr_scores$noun_condition)) {
                           paired = TRUE, exact = FALSE)
 
         N_c <- sum(complete_pairs)
-        Z_c <- qnorm(wt$p.value / 2) * ifelse(wt$statistic > 0, 1, -1)
-        r_c <- abs(Z_c) / sqrt(N_c)
+        sub_metric <- sub_wide[complete_pairs, ] %>%
+            select(participant_id, all_of(c(active_col, passive_col))) %>%
+            pivot_longer(cols = -participant_id, names_to = "voice", values_to = "val")
+        r_c_res <- wilcox_effsize(sub_metric, val ~ voice, paired = TRUE)
+        r_c <- r_c_res$effsize
 
         sig_flag <- if (wt$p.value < 0.05) " *" else ""
         .log(sprintf(
@@ -456,9 +473,10 @@ wr_active_test <- wilcox.test(voice_agg$wr_acc_mean_Active,
                                mu = 0.5, alternative = "greater")
 .stat_lines <<- c(.stat_lines, capture.output(print(wr_active_test)))
 print(wr_active_test)
-Z_ca <- qnorm(wr_active_test$p.value)   # one-sided p
-r_ca <- abs(Z_ca) / sqrt(N_parts)
-.log(sprintf("  rank-biserial r (Active vs chance) = %.4f", r_ca))
+N_nonzero_a <- sum(voice_agg$wr_acc_mean_Active != 0.5, na.rm = TRUE)
+Z_ca <- qnorm(wr_active_test$p.value, lower.tail = FALSE)  # one-sided upper
+r_ca <- Z_ca / sqrt(N_nonzero_a)
+.log(sprintf("  rank-biserial r (Active vs chance) = %.4f (N_nonzero = %d)", r_ca, N_nonzero_a))
 
 .log(
     "\n================================================================",
@@ -469,9 +487,10 @@ wr_passive_test <- wilcox.test(voice_agg$wr_acc_mean_Passive,
                                 mu = 0.5, alternative = "greater")
 .stat_lines <<- c(.stat_lines, capture.output(print(wr_passive_test)))
 print(wr_passive_test)
-Z_cp <- qnorm(wr_passive_test$p.value)
-r_cp <- abs(Z_cp) / sqrt(N_parts)
-.log(sprintf("  rank-biserial r (Passive vs chance) = %.4f", r_cp))
+N_nonzero_p <- sum(voice_agg$wr_acc_mean_Passive != 0.5, na.rm = TRUE)
+Z_cp <- qnorm(wr_passive_test$p.value, lower.tail = FALSE)
+r_cp <- Z_cp / sqrt(N_nonzero_p)
+.log(sprintf("  rank-biserial r (Passive vs chance) = %.4f (N_nonzero = %d)", r_cp, N_nonzero_p))
 
 # ── Save statistical_tests.txt ───────────────────────────────────────────────
 if (exists("stat_dir")) {

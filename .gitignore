@@ -60,7 +60,7 @@ desktop.ini
 
 # Logs (general)
 *.log.bak
-logs/
+# logs/
 
 # Env files
 .env
