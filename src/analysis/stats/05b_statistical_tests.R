@@ -213,6 +213,13 @@ run_friedman <- function(metric_col, label) {
     }
 }
 
+.log(
+    "\n  --- Sphericity (class 14.pdf) ---",
+    "  Mauchly's test of sphericity is not applicable here as the analysis used",
+    "  Friedman's non-parametric test, which operates on ranks and does not assume",
+    "  equal variances across conditions."
+)
+
 cat("\n  --- Omnibus Tests (Friedman's) ---\n")
 run_friedman("ir_cr",        "Corrected IR")
 run_friedman("wr_acc_score", "WR Accuracy")
@@ -251,6 +258,9 @@ run_srh <- function(metric_col, label) {
         "\n================================================================",
         sprintf("SCHEIRER-RAY-HARE: %s ~ noun_condition * voice", label),
         "(2-way non-parametric, class 14.pdf; limitation: designed for indep. groups)",
+        "LIMITATION NOTE (Fix 7): The Scheirer-Ray-Hare test was developed for",
+        "mixed factorial designs; as both factors are within-participants here,",
+        "the H statistics should be interpreted with caution as an approximation.",
         "================================================================"
     )
     srh <- scheirerRayHare(
