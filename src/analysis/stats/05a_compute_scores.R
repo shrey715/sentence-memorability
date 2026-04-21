@@ -142,7 +142,53 @@ print(summary(cr_scores$ir_cr))
 cat("\n    WR accuracy summary:\n")
 print(summary(cr_scores$wr_acc_score))
 
-# ── Descriptive Statistics ──────────────────────────────────────────────────
+# ── Outlier Detection (F11) ─────────────────────────────────────────────────
+# Detection only — no exclusions. Non-parametric tests are robust to outliers.
+# This block documents the range of values and flags any extremes.
+cat("\n  Outlier detection (detection only, no exclusions)...\n")
+
+outlier_IR <- cr_scores %>%
+    filter(ir_cr < -0.5) %>%
+    select(participant_id, noun_condition, voice, ir_cr)
+
+rt_stats <- cr_scores %>%
+    summarise(
+        mean_rt = mean(ir_rt, na.rm = TRUE),
+        sd_rt   = sd(ir_rt,   na.rm = TRUE)
+    )
+rt_lower <- rt_stats$mean_rt - 3 * rt_stats$sd_rt
+rt_upper <- rt_stats$mean_rt + 3 * rt_stats$sd_rt
+
+outlier_RT <- cr_scores %>%
+    filter(!is.na(ir_rt), (ir_rt < rt_lower | ir_rt > rt_upper)) %>%
+    select(participant_id, noun_condition, voice, ir_rt)
+
+cat(sprintf("    IR CR range : [%.3f, %.3f] | values < -0.5 : %d\n",
+    min(cr_scores$ir_cr, na.rm = TRUE),
+    max(cr_scores$ir_cr, na.rm = TRUE),
+    nrow(outlier_IR)))
+cat(sprintf("    IR RT range : [%.0f, %.0f] ms | outside mean\u00b13SD [%.0f, %.0f] : %d\n",
+    min(cr_scores$ir_rt, na.rm = TRUE),
+    max(cr_scores$ir_rt, na.rm = TRUE),
+    rt_lower, rt_upper, nrow(outlier_RT)))
+
+if (exists("stat_dir")) {
+    outlier_lines <- c(
+        "=== IR CR: Values below -0.5 ===",
+        capture.output(print(as.data.frame(outlier_IR), row.names = FALSE)),
+        "",
+        "=== IR RT: Values outside mean \u00b1 3SD ===",
+        sprintf("  Bounds: %.0f \u2013 %.0f ms", rt_lower, rt_upper),
+        capture.output(print(as.data.frame(outlier_RT), row.names = FALSE)),
+        "",
+        "Decision: No observations excluded. Non-parametric tests used throughout."
+    )
+    writeLines(outlier_lines, file.path(stat_dir, "outlier_check.txt"))
+    cat(sprintf("  Saved -> %s/outlier_check.txt\n", stat_dir))
+}
+
+# ── Descriptive Statistics (F8: bootstrap 95% CIs added) ────────────────────
+set.seed(42)  # reproducibility for bootstrap
 cat("\n  Computing per-condition descriptive statistics...\n")
 desc_table <- cr_scores %>%
     filter(noun_condition %in% c("HH", "HL", "LH", "LL")) %>%
@@ -152,27 +198,41 @@ desc_table <- cr_scores %>%
     ) %>%
     group_by(noun_condition, voice, metric) %>%
     summarise(
-        N = sum(!is.na(value)),
-        Mean = round(mean(value, na.rm = TRUE), 4),
-        SD = round(sd(value, na.rm = TRUE), 4),
+        N      = sum(!is.na(value)),
+        Mean   = round(mean(value, na.rm = TRUE), 4),
+        SD     = round(sd(value,   na.rm = TRUE), 4),
         Median = round(median(value, na.rm = TRUE), 4),
-        Min = round(min(value, na.rm = TRUE), 4),
-        Max = round(max(value, na.rm = TRUE), 4),
+        Min    = round(min(value, na.rm = TRUE), 4),
+        Max    = round(max(value, na.rm = TRUE), 4),
+        CI_lower = round({
+            v <- value[!is.na(value)]
+            quantile(replicate(1000, mean(sample(v, replace = TRUE))), 0.025)
+        }, 4),
+        CI_upper = round({
+            v <- value[!is.na(value)]
+            quantile(replicate(1000, mean(sample(v, replace = TRUE))), 0.975)
+        }, 4),
         .groups = "drop"
     )
 
 cat("\n    Descriptive statistics:\n")
 print(as.data.frame(desc_table), row.names = FALSE)
 
-# ── Shapiro-Wilk Normality ──────────────────────────────────────────────────
-cat("\n  Shapiro-Wilk normality tests...\n")
+# ── Shapiro-Wilk Normality (F1: per-group, not pooled) ───────────────────────
+# Class 7.pdf: "if you have groups of data, you MUST test each group for normality."
+# Fix: group_by(noun_condition, metric) produces 4 conditions x 3 metrics = 12 tests.
+# Transformation branch skipped: IR CR and WR Accuracy are bounded proportions
+# (~[-0.5, 1.0]); IR RT has heavy tails. These are structurally non-normal and
+# neither sqrt nor log10 reliably rescues normality for bounded data.
+# Non-parametric tests (Friedman's) are used throughout per class 14.pdf flowchart.
+cat("\n  Shapiro-Wilk normality tests (per condition group)...\n")
 shapiro_results <- cr_scores %>%
     filter(noun_condition %in% c("HH", "HL", "LH", "LL")) %>%
     pivot_longer(
         cols = c(ir_cr, wr_acc_score, ir_rt),
         names_to = "metric", values_to = "value"
     ) %>%
-    group_by(metric) %>%
+    group_by(noun_condition, metric) %>%          # F1: added noun_condition
     summarise(
         n = sum(!is.na(value)),
         W = {
@@ -185,6 +245,7 @@ shapiro_results <- cr_scores %>%
         },
         .groups = "drop"
     ) %>%
+    arrange(metric, noun_condition) %>%
     mutate(conclusion = case_when(
         is.na(p_value) ~ "Insufficient data",
         p_value > 0.05 ~ "Normal (p > .05)",
@@ -192,10 +253,10 @@ shapiro_results <- cr_scores %>%
     ))
 
 print(as.data.frame(shapiro_results), row.names = FALSE)
-non_normal <- sum(shapiro_results$p_value < 0.05, na.rm = TRUE)
+non_normal_groups <- sum(shapiro_results$p_value < 0.05, na.rm = TRUE)
 cat(sprintf(
-    "\n    %d/%d metrics are non-normal -> non-parametric tests justified.\n",
-    non_normal, nrow(shapiro_results)
+    "\n    %d/%d condition-metric cells are non-normal -> non-parametric tests justified.\n",
+    non_normal_groups, nrow(shapiro_results)
 ))
 
 # ── Save outputs ─────────────────────────────────────────────────────────────

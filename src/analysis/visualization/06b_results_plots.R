@@ -207,6 +207,23 @@ ggplot(cr_scores, aes(sample = ir_rt)) +
     theme_pub
 save_plot("outputs/plots/07_qq_ir_rt.png")
 
+# ── Plot 07b: Q-Q WR Accuracy (F13) ─────────────────────────────────────────
+# F13: WR accuracy Q-Q was missing. Class 7.pdf requires per-group normality
+# visualisation for every metric tested. Added to match 06_qq_ir_cr.png pattern.
+cat("  [7b/9] Q-Q plot for WR accuracy (per condition)...\n")
+ggplot(cr_scores, aes(sample = wr_acc_score)) +
+    stat_qq(na.rm = TRUE, alpha = 0.4, colour = "gray40") +
+    stat_qq_line(na.rm = TRUE, linewidth = 0.7, colour = "black", linetype = "dashed") +
+    facet_wrap(~noun_condition, labeller = labeller(noun_condition = cond_labels)) +
+    labs(
+        title    = "Q-Q Plot: WR Accuracy by Noun Condition",
+        subtitle = "Dashed line = theoretical normal; deviation indicates non-normality",
+        x        = "Theoretical quantiles",
+        y        = "Sample quantiles"
+    ) +
+    theme_pub
+save_plot("outputs/plots/07b_qq_wr_acc.png")
+
 # ── Plot 08: IR CR by Voice (Raincloud) ──────────────────────────────────────
 cat("  [8/9] IR CR by voice (main effect raincloud)...\n")
 ggplot(cr_scores, aes(x = voice, y = ir_cr, fill = voice)) +

@@ -1,0 +1,29 @@
+=== Fligner-Killeen Test: Homogeneity of Variance ===
+(Non-parametric equivalent of Levene's; class 14.pdf flowchart step)
+
+IR Corrected Rate:
+
+	Fligner-Killeen test of homogeneity of variances
+
+data:  ir_cr by noun_condition
+Fligner-Killeen:med chi-squared = 4.0452, df = 3, p-value = 0.2566
+
+
+WR Accuracy:
+
+	Fligner-Killeen test of homogeneity of variances
+
+data:  wr_acc_score by noun_condition
+Fligner-Killeen:med chi-squared = 8.7029, df = 3, p-value = 0.03351
+
+
+IR Reaction Time:
+
+	Fligner-Killeen test of homogeneity of variances
+
+data:  ir_rt by noun_condition
+Fligner-Killeen:med chi-squared = 8.1815, df = 3, p-value = 0.04241
+
+
+Interpretation: p < .05 indicates unequal spread across conditions.
+Friedman's test is used regardless (robustness to variance heterogeneity).
