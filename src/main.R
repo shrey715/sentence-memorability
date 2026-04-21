@@ -21,6 +21,13 @@ cat(sprintf("  Log file    : %s\n", log_file))
 cat(sprintf("  Stats dir   : %s\n", stat_dir))
 cat("================================================================\n")
 
+# ── PIPELINE OVERVIEW ────────────────────────────────────────────────────────
+# Phase 1: Load raw .log files → clean events → validate participants → finalize
+# Phase 2: Sanity-check the final dataset before analysis (counts, balance)
+# Phase 3: Compute corrected recognition (CR) scores and descriptive stats
+# Phase 4: Run non-parametric inferential tests (handled by teammate)
+# Phase 5: Generate all result plots from CR scores
+
 cat("\n\n================================================================\n")
 cat("  PHASE 1: Preprocessing\n")
 cat("================================================================\n")

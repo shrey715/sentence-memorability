@@ -1,0 +1,14 @@
+=== IR CR: Values below -0.5 ===
+[1] participant_id noun_condition voice          ir_cr         
+<0 rows> (or 0-length row.names)
+
+=== IR RT: Values outside mean ± 3SD ===
+  Bounds: 536 – 2909 ms
+ participant_id noun_condition   voice  ir_rt
+            245             HL Passive 3834.0
+            298             LL Passive 2955.5
+            309             LH Passive 2963.0
+            325             LL  Active 2978.0
+            330             HH  Active 3009.0
+
+Decision: No observations excluded. Non-parametric tests used throughout.

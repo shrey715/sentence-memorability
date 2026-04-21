@@ -1,3 +1,16 @@
+# 06a_data_checks.R
+# Sanity checks on the fully preprocessed dataset before computing scores.
+# Verifies that trial counts per participant and condition are as expected,
+# and that active/passive voice is balanced across noun conditions.
+#
+# These plots are diagnostic — they confirm data integrity, not results.
+#
+# Input:  data/processed/final_data.csv
+# Output: outputs/plots/00a_sentences_per_participant.png
+#         outputs/plots/00b_trials_by_noun_condition.png
+#         outputs/plots/00c_trials_by_voice.png
+#         outputs/plots/00d_trials_condition_by_voice.png
+
 cat("\n[06a_data_checks] Data integrity crosschecks...\n")
 
 suppressPackageStartupMessages({
@@ -9,6 +22,10 @@ suppressPackageStartupMessages({
 df <- read.csv("data/processed/final_data.csv", stringsAsFactors = FALSE)
 dir.create("outputs/plots", showWarnings = FALSE, recursive = TRUE)
 
+# ── Isolate encoding trials ──────────────────────────────────────────────────
+# Only first-presentation target sentences are counted here.
+# Probe repeats are excluded so we're checking how many unique sentences
+# each participant actually encoded — expected: 48.
 # ── Encoding targets only ─────────────────────────────────────────────────────
 # (Sentence shown, is_target_sentence = TRUE, not a probe repeat)
 enc <- df %>%
@@ -35,6 +52,7 @@ cat(sprintf(
   max(per_part$n_sentences)
 ))
 
+# Plot 00a: Check that every participant saw exactly 48 target sentences
 ggplot(per_part, aes(x = n_sentences)) +
   geom_histogram(binwidth = 1, fill = "#56B4E9", colour = "white") +
   geom_vline(aes(xintercept = 48, linetype = "Expected (48)"), colour = "black", linewidth = 0.8) +
@@ -60,6 +78,7 @@ for (i in seq_len(nrow(cond_dist))) {
   cat(sprintf("      %-4s : %d\n", cond_dist$noun_condition[i], cond_dist$n[i]))
 }
 
+# Plot 00b: Confirm roughly equal trial counts across HH / HL / LH / LL
 ggplot(cond_dist, aes(x = noun_condition, y = n)) +
   geom_col(width = 0.6, fill = "#56B4E9", colour = "white") +
   geom_text(aes(label = n), vjust = -0.4, size = 4) +
@@ -83,6 +102,7 @@ for (i in seq_len(nrow(voice_dist))) {
   cat(sprintf("      %-8s : %d\n", voice_dist$voice[i], voice_dist$n[i]))
 }
 
+# Plot 00c: Confirm roughly equal active vs. passive trial counts
 ggplot(voice_dist, aes(x = voice, y = n)) +
   geom_col(width = 0.5, fill = "#56B4E9", colour = "white") +
   geom_text(aes(label = n), vjust = -0.4, size = 4) +
@@ -107,7 +127,7 @@ cross_wide <- cross %>%
   pivot_wider(names_from = voice, values_from = n, values_fill = 0L)
 print(as.data.frame(cross_wide), row.names = FALSE)
 
-# Active/Passive: filled vs. outline — dark fill for active (unmarked), light for passive (marked)
+# Plot 00d: Confirm voice is balanced within each noun condition
 ggplot(cross, aes(x = noun_condition, y = n, fill = voice)) +
   geom_col(position = position_dodge(width = 0.65), width = 0.55, colour = "gray30") +
   geom_text(aes(label = n),

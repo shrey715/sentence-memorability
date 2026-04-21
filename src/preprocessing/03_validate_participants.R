@@ -1,3 +1,16 @@
+# 03_validate_participants.R
+# Applies the pre-registered block-level attentiveness check to flag blocks
+# where the participant failed to detect validation repeats.
+#
+# Validation formula (per block):
+#   Correct validation presses > (Wrong IR presses / 2) + Missed validations
+#
+# Flagged blocks are tagged block_valid = FALSE and excluded in script 04.
+#
+# Input:  data/processed/cleaned_data.csv
+# Output: data/processed/pruned_data.csv
+#         data/processed/validation_report.csv
+
 library(dplyr)
 
 cat("\n[03_validate_participants] Applying block-level validation formula...\n")
@@ -6,6 +19,10 @@ df <- read.csv("data/processed/cleaned_data.csv")
 cat(sprintf("  Input rows : %d from %d participants\n",
             nrow(df), length(unique(df$participant_id))))
 
+# ── Count validation event types per participant × block ─────────────────────
+# "Validation IR pressed"       = correct detection (hit)
+# "Validation Wrong IR pressed" = false alarm on a non-repeat
+# "Validation Missed"           = failed to press on a validation repeat
 validation_counts <- df %>%
   group_by(participant_id, block_id) %>%
   summarise(
@@ -15,6 +32,9 @@ validation_counts <- df %>%
     .groups     = "drop"
   )
 
+# ── Apply validation formula ─────────────────────────────────────────────────
+# A block passes only if correct detections exceed the weighted error rate.
+# This is the pre-registered attentiveness threshold.
 validation_counts <- validation_counts %>%
   mutate(
     threshold   = (wrong_ir / 2) + missed_val,

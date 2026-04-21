@@ -1,0 +1,251 @@
+================================================================
+  Block-Level Learning Analysis
+================================================================
+  Run : 2026-04-21 23:20:51
+  Input : data/processed/block_scores.csv
+
+  Participants : 105
+  Rows         : 1260  (12 per participant: 3 blocks × 4 conditions)
+
+
+================================================================
+NORMALITY CHECK — Shapiro-Wilk per Group (class 14.pdf)
+(One test per group being compared; pooled tests are uninformative)
+================================================================
+
+── Shapiro-Wilk: Corrected IR by Noun Condition ──
+ noun_condition   n         W      p_value           conclusion
+             HH 315 0.9615682 2.220080e-07 Non-normal (p < .05)
+             HL 315 0.9606171 1.640331e-07 Non-normal (p < .05)
+             LH 315 0.9524738 1.438316e-08 Non-normal (p < .05)
+             LL 315 0.9691219 2.891636e-06 Non-normal (p < .05)
+  4/4 noun condition groups are non-normal
+
+── Shapiro-Wilk: Corrected IR by Block ──
+ block_id   n         W      p_value           conclusion
+  Block 1 105 0.9790573 9.530445e-02     Normal (p > .05)
+  Block 2 105 0.9262425 1.985656e-05 Non-normal (p < .05)
+  Block 3 105 0.9476525 4.092199e-04 Non-normal (p < .05)
+  2/3 block groups are non-normal
+
+── Sphericity (class 14.pdf) ──
+  Mauchly's test of sphericity is not applicable here.
+  Because normality is violated in at least one group, Friedman's non-parametric
+  test was used throughout. Friedman's operates on ranks and does not assume
+  equal variances (sphericity) across conditions — the assumption is implicitly
+  bypassed by the rank transformation (class 14.pdf, repeated-measures section).
+
+
+================================================================
+ANALYSIS A — Main Effect of Block (Friedman's)
+(Collapsed across noun condition; tests pure learning/fatigue)
+(3-level within-participants → Friedman's, class 14.pdf flowchart)
+================================================================
+
+── A. Friedman's: Block effect on Corrected IR ──
+# A tibble: 1 × 6
+  .y.              n statistic    df          p method       
+* <chr>        <int>     <dbl> <dbl>      <dbl> <chr>        
+1 corrected_ir   105      23.3     2 0.00000893 Friedman test
+  Kendall's W:
+# A tibble: 1 × 5
+  .y.              n effsize method    magnitude
+* <chr>        <int>   <dbl> <chr>     <ord>    
+1 corrected_ir   105   0.111 Kendall W small    
+
+  Significant — post-hoc: Paired Wilcoxon signed-rank (Holm-corrected)
+  (Same participants across all 3 blocks → paired = TRUE)
+# A tibble: 3 × 9
+  .y.          group1  group2    n1    n2 statistic       p   p.adj p.adj.signif
+* <chr>        <chr>   <chr>  <int> <int>     <dbl>   <dbl>   <dbl> <chr>       
+1 corrected_ir Block 1 Block…   105   105     1449  3.39e-4 6.78e-4 ***         
+2 corrected_ir Block 1 Block…   105   105     1252  4.35e-6 1.3 e-5 ****        
+3 corrected_ir Block 2 Block…   105   105     1866. 1.66e-1 1.66e-1 ns          
+  Rank-biserial r:
+# A tibble: 3 × 7
+  .y.          group1  group2  effsize    n1    n2 magnitude
+* <chr>        <chr>   <chr>     <dbl> <int> <int> <ord>    
+1 corrected_ir Block 1 Block 2   0.351   105   105 moderate 
+2 corrected_ir Block 1 Block 3   0.449   105   105 moderate 
+3 corrected_ir Block 2 Block 3   0.142   105   105 small    
+
+── A. Friedman's: Block effect on WR Accuracy ──
+# A tibble: 1 × 6
+  .y.        n statistic    df     p method       
+* <chr>  <int>     <dbl> <dbl> <dbl> <chr>        
+1 wr_acc   105      1.42     2 0.492 Friedman test
+  Kendall's W:
+# A tibble: 1 × 5
+  .y.        n effsize method    magnitude
+* <chr>  <int>   <dbl> <chr>     <ord>    
+1 wr_acc   105 0.00676 Kendall W small    
+  Non-significant at α = .05. Post-hoc skipped.
+
+── A. Friedman's: Block effect on Reaction Time (ms) ──
+# A tibble: 1 × 6
+  .y.         n statistic    df     p method       
+* <chr>   <int>     <dbl> <dbl> <dbl> <chr>        
+1 mean_rt   105     0.514     2 0.773 Friedman test
+  Kendall's W:
+# A tibble: 1 × 5
+  .y.         n effsize method    magnitude
+* <chr>   <int>   <dbl> <chr>     <ord>    
+1 mean_rt   105 0.00245 Kendall W small    
+  Non-significant at α = .05. Post-hoc skipped.
+
+
+================================================================
+ANALYSIS B — Scheirer-Ray-Hare: Noun Condition × Block Interaction
+(2-way non-parametric; tests whether LL deficit changes over blocks)
+(Mirrors Condition × Voice SRH in 05b; uses rcompanion)
+================================================================
+  LIMITATION NOTE (Fix 7): The Scheirer-Ray-Hare test was developed for
+  mixed factorial (between-groups) or randomised-block designs. Both factors
+  here (noun condition and block) are within-participants. SRH is used as
+  the best available approximation consistent with class 14.pdf; H statistics
+  for the interaction term should be interpreted with appropriate caution.
+
+── B. SRH: Corrected IR ~ noun_condition + block_id ──
+  Cell balance check: OK (all cells equal)
+
+DV:  corrected_ir 
+Observations:  1260 
+D:  0.9978636 
+MS total:  132405 
+
+                          Df    Sum Sq      H p.value
+noun_condition             3   2349139 17.780 0.00049
+block_id                   2   6789951 51.391 0.00000
+noun_condition:block_id    6    849129  6.427 0.37711
+Residuals               1248 156353551               
+  η²_H (noun_condition) = 0.2352
+  η²_H (block_id)       = 0.6798
+  η²_H (interaction)    = 0.0850
+  (η²_H benchmarks: .01 small, .06 medium, .14 large)
+
+── B. SRH: WR Accuracy ~ noun_condition + block_id ──
+  Cell balance check: OK (all cells equal)
+
+DV:  wr_acc 
+Observations:  1247 
+D:  0.9358315 
+MS total:  129688 
+
+                          Df    Sum Sq      H p.value
+noun_condition             3    734920 6.0554 0.10895
+block_id                   2    100735 0.8300 0.66034
+noun_condition:block_id    6   1109661 9.1431 0.16569
+Residuals               1235 149276263               
+  η²_H (noun_condition) = 0.3778
+  η²_H (block_id)       = 0.0518
+  η²_H (interaction)    = 0.5704
+  (η²_H benchmarks: .01 small, .06 medium, .14 large)
+
+
+================================================================
+ANALYSIS C — Per-Block Friedman: Noun Condition Effect within Each Block
+(Does the LL deficit hold separately in Block 1, Block 2, Block 3?)
+(Post-hoc only if omnibus p < .05, Holm-corrected)
+================================================================
+
+── C. Block: Block 1 ──
+  Participants with complete data: 105
+# A tibble: 1 × 6
+  .y.              n statistic    df          p method       
+* <chr>        <int>     <dbl> <dbl>      <dbl> <chr>        
+1 corrected_ir   105      29.0     3 0.00000220 Friedman test
+  Kendall's W:
+# A tibble: 1 × 5
+  .y.              n effsize method    magnitude
+* <chr>        <int>   <dbl> <chr>     <ord>    
+1 corrected_ir   105  0.0922 Kendall W small    
+  Significant — post-hoc: Paired Wilcoxon signed-rank (Holm-corrected)
+# A tibble: 6 × 9
+  .y.          group1 group2    n1    n2 statistic        p   p.adj p.adj.signif
+* <chr>        <chr>  <chr>  <int> <int>     <dbl>    <dbl>   <dbl> <chr>       
+1 corrected_ir HH     HL       105   105      962   7.16e-1 7.9 e-1 ns          
+2 corrected_ir HH     LH       105   105     1348.  9.09e-4 4   e-3 **          
+3 corrected_ir HH     LL       105   105     1466   2.25e-5 1.35e-4 ***         
+4 corrected_ir HL     LH       105   105     1200.  2   e-3 6   e-3 **          
+5 corrected_ir HL     LL       105   105     1672   3.03e-5 1.52e-4 ***         
+6 corrected_ir LH     LL       105   105      960.  3.95e-1 7.9 e-1 ns          
+  Rank-biserial r:
+# A tibble: 6 × 7
+  .y.          group1 group2 effsize    n1    n2 magnitude
+* <chr>        <chr>  <chr>    <dbl> <int> <int> <ord>    
+1 corrected_ir HH     HL      0.0451   105   105 small    
+2 corrected_ir HH     LH      0.349    105   105 moderate 
+3 corrected_ir HH     LL      0.417    105   105 moderate 
+4 corrected_ir HL     LH      0.306    105   105 moderate 
+5 corrected_ir HL     LL      0.398    105   105 moderate 
+6 corrected_ir LH     LL      0.0502   105   105 small    
+
+── C. Block: Block 2 ──
+  Participants with complete data: 105
+# A tibble: 1 × 6
+  .y.              n statistic    df      p method       
+* <chr>        <int>     <dbl> <dbl>  <dbl> <chr>        
+1 corrected_ir   105      8.06     3 0.0448 Friedman test
+  Kendall's W:
+# A tibble: 1 × 5
+  .y.              n effsize method    magnitude
+* <chr>        <int>   <dbl> <chr>     <ord>    
+1 corrected_ir   105  0.0256 Kendall W small    
+  Significant — post-hoc: Paired Wilcoxon signed-rank (Holm-corrected)
+# A tibble: 6 × 9
+  .y.          group1 group2    n1    n2 statistic     p p.adj p.adj.signif
+* <chr>        <chr>  <chr>  <int> <int>     <dbl> <dbl> <dbl> <chr>       
+1 corrected_ir HH     HL       105   105      774. 0.51  1     ns          
+2 corrected_ir HH     LH       105   105      722. 0.755 1     ns          
+3 corrected_ir HH     LL       105   105     1309  0.1   0.5   ns          
+4 corrected_ir HL     LH       105   105     1050. 0.435 1     ns          
+5 corrected_ir HL     LL       105   105     1230. 0.013 0.078 ns          
+6 corrected_ir LH     LL       105   105     1044  0.214 0.856 ns          
+  Rank-biserial r:
+# A tibble: 6 × 7
+  .y.          group1 group2 effsize    n1    n2 magnitude
+* <chr>        <chr>  <chr>    <dbl> <int> <int> <ord>    
+1 corrected_ir HH     HL      0.120    105   105 small    
+2 corrected_ir HH     LH      0.0291   105   105 small    
+3 corrected_ir HH     LL      0.149    105   105 small    
+4 corrected_ir HL     LH      0.0701   105   105 small    
+5 corrected_ir HL     LL      0.282    105   105 small    
+6 corrected_ir LH     LL      0.120    105   105 small    
+
+── C. Block: Block 3 ──
+  Participants with complete data: 105
+# A tibble: 1 × 6
+  .y.              n statistic    df      p method       
+* <chr>        <int>     <dbl> <dbl>  <dbl> <chr>        
+1 corrected_ir   105      11.0     3 0.0115 Friedman test
+  Kendall's W:
+# A tibble: 1 × 5
+  .y.              n effsize method    magnitude
+* <chr>        <int>   <dbl> <chr>     <ord>    
+1 corrected_ir   105  0.0350 Kendall W small    
+  Significant — post-hoc: Paired Wilcoxon signed-rank (Holm-corrected)
+# A tibble: 6 × 9
+  .y.          group1 group2    n1    n2 statistic     p p.adj p.adj.signif
+* <chr>        <chr>  <chr>  <int> <int>     <dbl> <dbl> <dbl> <chr>       
+1 corrected_ir HH     HL       105   105      848. 0.248 0.744 ns          
+2 corrected_ir HH     LH       105   105      753  0.408 0.816 ns          
+3 corrected_ir HH     LL       105   105     1508. 0.058 0.233 ns          
+4 corrected_ir HL     LH       105   105      985  0.953 0.953 ns          
+5 corrected_ir HL     LL       105   105     1369  0.024 0.12  ns          
+6 corrected_ir LH     LL       105   105     1764. 0.007 0.044 *           
+  Rank-biserial r:
+# A tibble: 6 × 7
+  .y.          group1 group2 effsize    n1    n2 magnitude
+* <chr>        <chr>  <chr>    <dbl> <int> <int> <ord>    
+1 corrected_ir HH     HL     0.128     105   105 small    
+2 corrected_ir HH     LH     0.0493    105   105 small    
+3 corrected_ir HH     LL     0.196     105   105 small    
+4 corrected_ir HL     LH     0.00278   105   105 small    
+5 corrected_ir HL     LL     0.253     105   105 small    
+6 corrected_ir LH     LL     0.263     105   105 small    
+
+
+================================================================
+  Analysis complete : 2026-04-21 23:20:56
+  Saved -> outputs/block_learning/block_stats.txt
+================================================================

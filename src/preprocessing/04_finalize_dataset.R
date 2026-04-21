@@ -1,3 +1,17 @@
+# 04_finalize_dataset.R
+# Final preprocessing step: drops rows from blocks that failed validation,
+# then parses noun condition and voice from the stimulus ID string.
+#
+# Stimulus ID format: <condition>_<number>_<voice_suffix>
+#   e.g. "HVL_3_A"  -> noun_condition = "HL", voice = "Active"
+#   e.g. "LVH_12_P" -> noun_condition = "LH", voice = "Passive"
+#
+# Note: stimulus labels were renamed mid-experiment (HVL -> HL, LVH -> LH,
+# LVL -> LL). The normalization below harmonizes both naming schemes.
+#
+# Input:  data/processed/pruned_data.csv
+# Output: data/processed/final_data.csv
+
 library(dplyr)
 library(stringr)
 
@@ -7,11 +21,17 @@ df <- read.csv("data/processed/pruned_data.csv", stringsAsFactors = FALSE)
 rows_before <- nrow(df)
 cat(sprintf("  Input rows : %d\n", rows_before))
 
+# ── Drop failed blocks ───────────────────────────────────────────────────────
+# Removes all rows belonging to blocks that failed the validation formula.
+# This is the actual exclusion step flagged in script 03.
 failed_blocks <- sum(df$block_valid == FALSE | is.na(df$block_valid))
 df <- df %>% filter(block_valid == TRUE) %>% select(-block_valid)
 cat(sprintf("  Rows from failed blocks excluded : %d\n", failed_blocks))
 cat(sprintf("  Rows retained                   : %d\n", nrow(df)))
 
+# ── Parse condition and voice from stimulus ID ────────────────────────────────
+# Extract the prefix (condition) and suffix (_A / _P) from the stimulus ID.
+# Normalize legacy condition labels to the final 4-level scheme: HH/HL/LH/LL.
 df <- df %>%
   mutate(
     noun_condition_raw = str_extract(stimulus_id, "^[A-Za-z]+"),
