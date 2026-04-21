@@ -125,8 +125,17 @@ if (!is.na(frm_c$p) && frm_c$p < 0.05) {
   ph_c_r <- sdt %>% wilcox_effsize(c_crit ~ noun_condition, paired=TRUE)
   print(ph_c); cat("  Rank-biserial r:\n"); print(ph_c_r)
 } else {
-  cat("  Non-significant at α = .05. Post-hoc skipped.\n")
+  cat("  Non-significant at alpha = .05. Post-hoc skipped.\n")
 }
+
+# Issue 3 & 4: Non-independence caveat and family-wise alpha
+cat("\n  !! NON-INDEPENDENCE CAVEAT (Issues 3 & 4) !!\n")
+cat("  FA rate is constant per participant across conditions (global HF lures only).\n")
+cat("  Therefore Friedman(d') and Friedman(c) rank participants identically:\n")
+cat("  both are determined solely by z(H) ordering — NOT independent tests.\n")
+cat("  Do NOT interpret as separate evidence for sensitivity vs bias.\n")
+cat("  A' (SDT-H1b below) is the only structurally independent sensitivity check.\n")
+cat("  Family-wise alpha for {d', c}: 0.05 / 2 = 0.025 (Bonferroni).\n")
 
 # ── SDT-H1b: Friedman on A' (robustness check) ────────────────────────────────
 cat("\n================================================================\n")
@@ -168,18 +177,34 @@ cat(sprintf("  N (complete pairs): %d\n", N_v))
 
 wt_d <- wilcox.test(sdt_v_agg$dprime_Active, sdt_v_agg$dprime_Passive, paired=TRUE, exact=FALSE)
 wt_c <- wilcox.test(sdt_v_agg$c_crit_Active, sdt_v_agg$c_crit_Passive, paired=TRUE, exact=FALSE)
-Z_d  <- qnorm(wt_d$p.value/2) * sign(wt_d$statistic - median(c(sdt_v_agg$dprime_Active - sdt_v_agg$dprime_Passive), na.rm=TRUE))
-Z_c  <- qnorm(wt_c$p.value/2) * sign(wt_c$statistic - median(c(sdt_v_agg$c_crit_Active  - sdt_v_agg$c_crit_Passive),  na.rm=TRUE))
 
-cat(sprintf("\n── d': Active M=%.3f vs Passive M=%.3f\n",
+# Issue 1 fix: use wilcox_effsize(paired=TRUE) — the correct rank-biserial formula
+# for paired signed-rank tests. The previous Z/sqrt(N) formula was for independent samples.
+sdt_v_d_long <- sdt_v_agg %>%
+  pivot_longer(cols = c(dprime_Active, dprime_Passive),
+               names_to = "voice", values_to = "dprime")
+sdt_v_c_long <- sdt_v_agg %>%
+  pivot_longer(cols = c(c_crit_Active, c_crit_Passive),
+               names_to = "voice", values_to = "c_crit")
+
+r_d_voice <- tryCatch(
+  wilcox_effsize(sdt_v_d_long, dprime ~ voice, paired = TRUE),
+  error = function(e) { cat(sprintf("  [wilcox_effsize d' error: %s]\n", e$message)); NULL }
+)
+r_c_voice <- tryCatch(
+  wilcox_effsize(sdt_v_c_long, c_crit ~ voice, paired = TRUE),
+  error = function(e) { cat(sprintf("  [wilcox_effsize c  error: %s]\n", e$message)); NULL }
+)
+
+cat(sprintf("\n-- d': Active M=%.3f vs Passive M=%.3f\n",
             mean(sdt_v_agg$dprime_Active, na.rm=TRUE), mean(sdt_v_agg$dprime_Passive, na.rm=TRUE)))
 print(wt_d)
-cat(sprintf("  rank-biserial r = %.3f\n", abs(Z_d)/sqrt(N_v)))
+if (!is.null(r_d_voice)) { cat("  Rank-biserial r (Fix 5, Issue 1 corrected):\n"); print(r_d_voice) }
 
-cat(sprintf("\n── c: Active M=%.3f vs Passive M=%.3f\n",
+cat(sprintf("\n-- c: Active M=%.3f vs Passive M=%.3f\n",
             mean(sdt_v_agg$c_crit_Active, na.rm=TRUE), mean(sdt_v_agg$c_crit_Passive, na.rm=TRUE)))
 print(wt_c)
-cat(sprintf("  rank-biserial r = %.3f\n", abs(Z_c)/sqrt(N_v)))
+if (!is.null(r_c_voice)) { cat("  Rank-biserial r (Fix 5, Issue 1 corrected):\n"); print(r_c_voice) }
 
 # ── SDT-H4: Convergent validity — Spearman d' vs Corrected IR ─────────────────
 cat("\n================================================================\n")

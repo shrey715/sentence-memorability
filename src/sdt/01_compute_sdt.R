@@ -11,6 +11,8 @@
 # Therefore only a GLOBAL per-participant FA rate is computable. This rate
 # is applied uniformly across conditions and voices — a standard approach
 # when lures are not condition-differentiated.
+# FA is counted from 'IR pressed' rows (not ir_accuracy on 'Sentence shown'),
+# because ir_accuracy is NA on all Sentence shown rows in this pipeline.
 #
 # HAUTUS CORRECTION: (hits+0.5)/(n+1) and (fa+0.5)/(n+1) applied to all
 # cells to avoid z(0)=-Inf and z(1)=+Inf with small per-cell N.
@@ -145,8 +147,23 @@ sdt_voice_scores <- target_voice %>%
     c_crit  = -0.5 * (qnorm(hit_adj) + qnorm(fa_adj)),
     noun_condition = factor(noun_condition, levels = c("HH", "HL", "LH", "LL")),
     voice   = factor(voice, levels = c("Active", "Passive"))
-  ) %>%
-  filter(participant_id %in% complete_pids)
+  )
+
+# Issue 6 fix: symmetric completeness filter for voice scores.
+# Require all 8 cells (4 conditions × 2 voices) in addition to condition-complete.
+complete_voice_pids <- sdt_voice_scores %>%
+  group_by(participant_id) %>%
+  summarise(n_cells = n(), .groups = "drop") %>%
+  filter(n_cells == 8L) %>%
+  pull(participant_id)
+
+n_voice_dropped <- length(unique(sdt_voice_scores$participant_id)) -
+                   length(intersect(complete_pids, complete_voice_pids))
+sdt_voice_scores <- sdt_voice_scores %>%
+  filter(participant_id %in% complete_pids,
+         participant_id %in% complete_voice_pids)
+cat(sprintf("  SDT voice-level  : %d participants complete | %d dropped\n",
+            length(unique(sdt_voice_scores$participant_id)), n_voice_dropped))
 
 # ── Save ───────────────────────────────────────────────────────────────────────
 dir.create("data/processed", showWarnings = FALSE, recursive = TRUE)

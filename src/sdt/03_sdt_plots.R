@@ -100,17 +100,29 @@ cat("  [4/5] d' vs Corrected IR scatter (convergent validity)...\n")
 conv_data <- sdt %>%
   left_join(cr, by=c("participant_id","noun_condition"))
 
+# Issue 5 fix: annotate Spearman rho per facet instead of OLS smooth line.
+# OLS is misleading when data is non-normal; Spearman rho is the correct
+# monotone-association measure already reported in 02_sdt_analysis.R.
+rho_labels <- conv_data %>%
+  group_by(noun_condition) %>%
+  summarise(rho = round(cor(ir_cr, dprime, method="spearman",
+                            use="complete.obs"), 3), .groups="drop") %>%
+  mutate(label = paste0("Spearman rho = ", rho))
+
 ggplot(conv_data, aes(x=ir_cr, y=dprime, colour=noun_condition)) +
   geom_point(size=1.4, alpha=0.4, na.rm=TRUE) +
-  geom_smooth(method="lm", se=TRUE, linewidth=0.8, na.rm=TRUE) +
+  geom_text(data=rho_labels, aes(label=label),
+            x=-Inf, y=Inf, hjust=-0.05, vjust=1.6,
+            size=3.8, colour="gray20", inherit.aes=FALSE) +
   scale_colour_manual(values=palette_cond, name="Noun Condition",
-                      labels=cond_labels) +
+                      labels=cond_labels, guide="none") +
   labs(title="Convergent Validity: d' vs Corrected IR",
-       subtitle="Strong rho validates Corrected IR as a proxy; weak rho signals bias contamination",
+       subtitle="Spearman rho annotated per facet (no OLS line; non-normal data)",
        x="Corrected IR (Hit Rate - FA Rate)", y="d' (SDT sensitivity)") +
   facet_wrap(~noun_condition, labeller=labeller(noun_condition=cond_labels)) +
   theme_pub
 save_plot("outputs/sdt/04_dprime_vs_corrIR.png")
+
 
 # ── Plot 05: d' and c by Voice (paired boxplot) ────────────────────────────────
 cat("  [5/5] d' and c by voice (paired boxplot)...\n")

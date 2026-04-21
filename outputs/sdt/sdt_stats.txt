@@ -1,7 +1,7 @@
 ================================================================
   SDT Analysis — Signal Detection Theory Extension
 ================================================================
-  Run : 2026-04-22 00:27:05
+  Run : 2026-04-22 00:33:46
 
   Participants : 112 | Rows : 448
 
@@ -107,6 +107,14 @@ SDT-H2: Friedman's Test — c ~ noun_condition
 5 c_crit HL     LL      0.400    112   112 moderate 
 6 c_crit LH     LL      0.282    112   112 small    
 
+  !! NON-INDEPENDENCE CAVEAT (Issues 3 & 4) !!
+  FA rate is constant per participant across conditions (global HF lures only).
+  Therefore Friedman(d') and Friedman(c) rank participants identically:
+  both are determined solely by z(H) ordering — NOT independent tests.
+  Do NOT interpret as separate evidence for sensitivity vs bias.
+  A' (SDT-H1b below) is the only structurally independent sensitivity check.
+  Family-wise alpha for {d', c}: 0.05 / 2 = 0.025 (Bonferroni).
+
 ================================================================
 SDT-H1b: Friedman's Test — A' ~ noun_condition (robustness check)
 (Non-parametric ROC area; no Gaussian assumption — validates d' pattern)
@@ -148,7 +156,7 @@ SDT-H3: Voice Effect on d' and c — Paired Wilcoxon
 ================================================================
   N (complete pairs): 112
 
-── d': Active M=1.956 vs Passive M=1.992
+-- d': Active M=1.956 vs Passive M=1.992
 
 	Wilcoxon signed rank test with continuity correction
 
@@ -156,9 +164,13 @@ data:  sdt_v_agg$dprime_Active and sdt_v_agg$dprime_Passive
 V = 1952, p-value = 0.2241
 alternative hypothesis: true location shift is not equal to 0
 
-  rank-biserial r = 0.115
+  Rank-biserial r (Fix 5, Issue 1 corrected):
+# A tibble: 1 × 7
+  .y.    group1        group2         effsize    n1    n2 magnitude
+* <chr>  <chr>         <chr>            <dbl> <int> <int> <ord>    
+1 dprime dprime_Active dprime_Passive   0.121   112   112 small    
 
-── c: Active M=0.092 vs Passive M=0.074
+-- c: Active M=0.092 vs Passive M=0.074
 
 	Wilcoxon signed rank test with continuity correction
 
@@ -166,7 +178,11 @@ data:  sdt_v_agg$c_crit_Active and sdt_v_agg$c_crit_Passive
 V = 2566, p-value = 0.2092
 alternative hypothesis: true location shift is not equal to 0
 
-  rank-biserial r = 0.119
+  Rank-biserial r (Fix 5, Issue 1 corrected):
+# A tibble: 1 × 7
+  .y.    group1        group2         effsize    n1    n2 magnitude
+* <chr>  <chr>         <chr>            <dbl> <int> <int> <ord>    
+1 c_crit c_crit_Active c_crit_Passive   0.126   112   112 small    
 
 ================================================================
 SDT-H4: Convergent Validity — Spearman rho(d', Corrected IR)
@@ -182,6 +198,6 @@ SDT-H4: Convergent Validity — Spearman rho(d', Corrected IR)
 
 
 ================================================================
-  SDT analysis complete : 2026-04-22 00:27:09
+  SDT analysis complete : 2026-04-22 00:33:50
   Saved -> outputs/sdt/sdt_stats.txt
 ================================================================
