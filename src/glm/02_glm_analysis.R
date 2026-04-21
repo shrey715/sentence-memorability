@@ -86,40 +86,65 @@ extract_coef_table <- function(model) {
   out[, c("term", "beta", "se", "t", "p", "ci_low", "ci_high")]
 }
 
+# extract_bf_table: compare four nested block models via lmBF().
+# Using lmBF() with factor variables directly ensures that noun_condition is treated
+# as a 3-df block (all-in or all-out), preserving symmetry with the lm() specification.
+# Previously, three manual numeric dummies were passed to regressionBF(), which allowed
+# partial dummy combinations that are not valid model states — this has been corrected.
+extract_bf_table <- function(data_df, outcome_var, outcome_name) {
+  # lmBF() already computes BF10 relative to the intercept-only null by default;
+  # passing ~ 1 as a BFlinearModel causes a slot-validation error in BayesFactor.
+  # We therefore fit only the three non-trivial models and read their BF10 values
+  # directly (each is already vs. the intercept-only null).
+  model_df_bf <- data_df %>%
+    filter(!is.na(.data[[outcome_var]]), !is.na(mean_rt), !is.na(mean_trial_position)) %>%
+    mutate(
+      noun_condition = factor(noun_condition, levels = c("LL", "LH", "HL", "HH")),
+      voice = factor(voice, levels = c("Active", "Passive"))
+    )
+
+  f_noun     <- as.formula(sprintf("%s ~ noun_condition", outcome_var))
+  f_main     <- as.formula(sprintf("%s ~ noun_condition + voice + mean_rt + mean_trial_position", outcome_var))
+  f_interact <- as.formula(sprintf("%s ~ noun_condition * voice + mean_rt + mean_trial_position", outcome_var))
+
+  bf_noun     <- lmBF(f_noun,     data = model_df_bf, progress = FALSE)
+  bf_main     <- lmBF(f_main,     data = model_df_bf, progress = FALSE)
+  bf_interact <- lmBF(f_interact, data = model_df_bf, progress = FALSE)
+
+  # extractBF(onlybf=TRUE) returns the linear BF10 directly (not log-BF).
+  bf10_noun     <- as.numeric(extractBF(bf_noun,     onlybf = TRUE))
+  bf10_main     <- as.numeric(extractBF(bf_main,     onlybf = TRUE))
+  bf10_interact <- as.numeric(extractBF(bf_interact, onlybf = TRUE))
+
+  # BF(interact/main) = BF10_interact / BF10_main
+  bf_interact_over_main <- bf10_interact / bf10_main
+
+  bf_tab <- data.frame(
+    model        = c("null (intercept only)", "noun_condition", "main_effects", "interaction"),
+    BF10_vs_null = c(1, bf10_noun, bf10_main, bf10_interact),
+    BF_vs_best   = NA_real_,
+    stringsAsFactors = FALSE
+  )
+  bf_tab$BF_vs_best <- bf_tab$BF10_vs_null / max(bf_tab$BF10_vs_null)
+  bf_tab <- bf_tab %>% arrange(desc(BF10_vs_null))
+  write.csv(bf_tab, sprintf("outputs/glm/%s_bayesfactor_models.csv", outcome_name), row.names = FALSE)
+
+  list(
+    table                 = bf_tab,
+    bf_main_over_null     = bf10_main,
+    bf_interact_over_main = bf_interact_over_main
+  )
+}
+
+# std_formula() rewrites a formula to use z-scored continuous predictors.
+# It is called below after manually creating mean_rt_z and
+# mean_trial_position_z via scale(), so standardised coefficients are obtained
+# by re-fitting the model on standardised inputs — not post-hoc β scaling.
 std_formula <- function(model_formula) {
   txt <- deparse(model_formula)
   txt <- gsub("mean_rt", "mean_rt_z", txt, fixed = TRUE)
   txt <- gsub("mean_trial_position", "mean_trial_position_z", txt, fixed = TRUE)
   as.formula(txt)
-}
-
-extract_bf_table <- function(data_df, outcome_var, outcome_name) {
-  bf_data <- data_df %>%
-    transmute(
-      outcome = .data[[outcome_var]],
-      noun_LH = as.numeric(noun_condition == "LH"),
-      noun_HL = as.numeric(noun_condition == "HL"),
-      noun_HH = as.numeric(noun_condition == "HH"),
-      voice_Passive = as.numeric(voice == "Passive"),
-      mean_rt,
-      mean_trial_position
-    )
-
-  bf_obj <- regressionBF(
-    outcome ~ noun_LH + noun_HL + noun_HH + voice_Passive + mean_rt + mean_trial_position,
-    data = bf_data,
-    whichModels = "all",
-    progress = FALSE
-  )
-  bf_raw <- extractBF(bf_obj, onlybf = FALSE)
-  bf_tab <- as.data.frame(bf_raw)
-  bf_tab$model <- rownames(bf_tab)
-  rownames(bf_tab) <- NULL
-  bf_tab$BF10 <- exp(bf_tab$bf)
-  bf_tab$BF_relative <- bf_tab$BF10 / max(bf_tab$BF10)
-  bf_tab <- bf_tab %>% arrange(desc(BF10))
-  write.csv(bf_tab, sprintf("outputs/glm/%s_bayesfactor_models.csv", outcome_name), row.names = FALSE)
-  bf_tab
 }
 
 run_outcome <- function(data_df, outcome, outcome_label) {
@@ -134,10 +159,33 @@ run_outcome <- function(data_df, outcome, outcome_label) {
   M3 <- lm(as.formula(sprintf("%s ~ noun_condition + voice + mean_rt + mean_trial_position", outcome)), data = model_df)
   M4 <- lm(as.formula(sprintf("%s ~ noun_condition * voice + mean_rt + mean_trial_position", outcome)), data = model_df)
 
-  anova_seq <- anova(M0, M1, M2, M3, M4)
+  # Robust sequential Wald tests (HC3) — replaces plain anova() F-tests which
+  # are invalid under confirmed heteroscedasticity (Breusch-Pagan p < .05).
+  # waldtest() with vcovHC produces chi-squared / F statistics adjusted for
+  # non-constant variance, giving valid p-values for H_GLM1 and H_GLM2.
+  wt_01 <- waldtest(M0, M1, vcov = vcovHC(M1, type = "HC3"))
+  wt_12 <- waldtest(M1, M2, vcov = vcovHC(M2, type = "HC3"))
+  wt_23 <- waldtest(M2, M3, vcov = vcovHC(M3, type = "HC3"))
+  wt_34 <- waldtest(M3, M4, vcov = vcovHC(M4, type = "HC3"))
+
+  # Collect robust Wald sequence into a single data frame for export
+  wald_seq <- bind_rows(
+    as.data.frame(wt_01)[2, , drop = FALSE] %>% mutate(comparison = "M0 vs M1"),
+    as.data.frame(wt_12)[2, , drop = FALSE] %>% mutate(comparison = "M1 vs M2"),
+    as.data.frame(wt_23)[2, , drop = FALSE] %>% mutate(comparison = "M2 vs M3"),
+    as.data.frame(wt_34)[2, , drop = FALSE] %>% mutate(comparison = "M3 vs M4")
+  )
+
+  # Non-robust AIC sequence retained for reference / delta-AIC inspection.
+  # Note: AIC is computed from OLS log-likelihood and is not HC3-adjusted;
+  # use the waldtest p-values above for formal inference.
   aic_vals <- AIC(M0, M1, M2, M3, M4)
   aic_vals$delta_aic <- aic_vals$AIC - min(aic_vals$AIC)
 
+  # NOTE: step() uses AIC evaluated on OLS log-likelihood, which is a biased
+  # criterion under heteroscedasticity. The selected formula is used only as a
+  # starting candidate; final inferential conclusions rely on robust waldtest()
+  # p-values, not on the stepwise path.
   step_best <- step(M4, direction = "backward", trace = 0)
 
   model_names <- c("M0", "M1", "M2", "M3", "M4")
@@ -192,10 +240,13 @@ run_outcome <- function(data_df, outcome, outcome_label) {
   fit_tab <- extract_model_fit(best_model)
   coef_tab <- extract_coef_table(best_model)
 
+  # Standardised coefficients: refit the best model after z-scoring the two continuous
+  # predictors inline.  The formula is rebuilt by substituting the original column names
+  # with their z-scored counterparts so that factor terms are left untouched.
   std_df <- model_df %>%
     mutate(
-      mean_rt_z = as.numeric(scale(mean_rt)),
-      mean_trial_position_z = as.numeric(scale(mean_trial_position))
+      mean_rt_z              = as.numeric(scale(mean_rt)),
+      mean_trial_position_z  = as.numeric(scale(mean_trial_position))
     )
   std_mod <- lm(std_formula(formula(best_model)), data = std_df)
   std_coef <- as.data.frame(summary(std_mod)$coefficients)
@@ -203,21 +254,21 @@ run_outcome <- function(data_df, outcome, outcome_label) {
   rownames(std_coef) <- NULL
   names(std_coef) <- c("std_beta", "std_se", "std_t", "std_p", "term")
 
-  bf_tab <- extract_bf_table(model_df, outcome, prefix)
+  bf_result <- extract_bf_table(model_df, outcome, prefix)
 
-  bf_m3 <- lmBF(as.formula(sprintf("%s ~ noun_condition + voice + mean_rt + mean_trial_position", outcome)), data = model_df)
-  bf_m4 <- lmBF(as.formula(sprintf("%s ~ noun_condition * voice + mean_rt + mean_trial_position", outcome)), data = model_df)
-  bf_int <- extractBF(bf_m4 / bf_m3, onlybf = TRUE)
+  # Robust Wald test for H_GLM4 interaction contrast (M3 vs M4).
+  # This replaces the plain anova(M3, M4) F-test to maintain consistency
+  # with the HC3 framework used throughout.
+  wt_m3_m4 <- waldtest(M3, M4, vcov = vcovHC(M4, type = "HC3"))
+  anova_m3_m4 <- as.data.frame(wt_m3_m4)
 
-  anova_m3_m4 <- anova(M3, M4)
-
-  write.csv(as.data.frame(anova_seq), sprintf("outputs/glm/%s_anova_sequence.csv", prefix), row.names = TRUE)
+  write.csv(wald_seq, sprintf("outputs/glm/%s_robust_wald_sequence.csv", prefix), row.names = FALSE)
   write.csv(aic_vals, sprintf("outputs/glm/%s_model_aic.csv", prefix), row.names = FALSE)
   write.csv(fit_tab, sprintf("outputs/glm/%s_best_model_fit.csv", prefix), row.names = FALSE)
   write.csv(coef_tab, sprintf("outputs/glm/%s_best_model_coefficients.csv", prefix), row.names = FALSE)
   write.csv(vif_tab, sprintf("outputs/glm/%s_best_model_vif.csv", prefix), row.names = FALSE)
   write.csv(std_coef, sprintf("outputs/glm/%s_best_model_standardized_coefficients.csv", prefix), row.names = FALSE)
-  write.csv(as.data.frame(anova_m3_m4), sprintf("outputs/glm/%s_interaction_m3_vs_m4.csv", prefix), row.names = TRUE)
+  write.csv(anova_m3_m4, sprintf("outputs/glm/%s_interaction_m3_vs_m4.csv", prefix), row.names = FALSE)
   if (!is.null(robust_tab)) {
     write.csv(robust_tab, sprintf("outputs/glm/%s_best_model_hc3_coefficients.csv", prefix), row.names = FALSE)
   }
@@ -231,7 +282,7 @@ run_outcome <- function(data_df, outcome, outcome_label) {
     model_names = model_names,
     best_name = best_name,
     best_formula = deparse(formula(best_model)),
-    anova_seq = as.data.frame(anova_seq),
+    wald_seq = wald_seq,
     aic = aic_vals,
     step_formula = deparse(formula(step_best)),
     shapiro = shapiro_res,
@@ -242,9 +293,10 @@ run_outcome <- function(data_df, outcome, outcome_label) {
     coef = coef_tab,
     vif = vif_tab,
     robust = robust_tab,
-    bf_tab = bf_tab,
-    bf_interaction_m4_over_m3 = as.numeric(exp(bf_int)),
-    anova_m3_m4 = as.data.frame(anova_m3_m4)
+    bf_tab = bf_result$table,
+    bf_main_over_null      = bf_result$bf_main_over_null,
+    bf_interaction_m4_over_m3 = bf_result$bf_interact_over_main,
+    anova_m3_m4 = anova_m3_m4
   )
 }
 
@@ -275,7 +327,9 @@ report_lines <- c(
   sprintf("Overall model fit: F(%d, %d)=%.4f, p=%.6g, R2=%.4f, Adj R2=%.4f",
           ir_res$fit$df1, ir_res$fit$df2, ir_res$fit$f_statistic,
           ir_res$fit$f_p_value, ir_res$fit$r_squared, ir_res$fit$adj_r_squared),
-  "Model sequence F-tests and delta AIC are saved in outputs/glm/corrected_ir_anova_sequence.csv and outputs/glm/corrected_ir_model_aic.csv.",
+  sprintf("Full model BF10 (main effects vs null): %.6g (%s)",
+          ir_res$bf_main_over_null, interpret_bf(ir_res$bf_main_over_null)),
+  "Robust Wald sequence (HC3) saved in outputs/glm/corrected_ir_robust_wald_sequence.csv; delta AIC in outputs/glm/corrected_ir_model_aic.csv.",
   "",
   "## H_GLM3 (WR Accuracy null-focused)",
   sprintf("Best model selected (AIC/backward step): %s", wr_res$best_formula),
@@ -283,19 +337,21 @@ report_lines <- c(
   sprintf("Overall model fit: F(%d, %d)=%.4f, p=%.6g, R2=%.4f, Adj R2=%.4f",
           wr_res$fit$df1, wr_res$fit$df2, wr_res$fit$f_statistic,
           wr_res$fit$f_p_value, wr_res$fit$r_squared, wr_res$fit$adj_r_squared),
-  "Bayes factors for all model combinations are in outputs/glm/wr_accuracy_bayesfactor_models.csv.",
-  sprintf("Best WR BF10 = %.6g (%s)",
-          max(wr_res$bf_tab$BF10), interpret_bf(max(wr_res$bf_tab$BF10))),
+  "Block BF comparisons (noun_condition as factor) are in outputs/glm/wr_accuracy_bayesfactor_models.csv.",
+  sprintf("WR main-effects BF10 (vs null): %.6g (%s)",
+          wr_res$bf_main_over_null, interpret_bf(wr_res$bf_main_over_null)),
   "",
   "## H_GLM4 (Interaction)",
-  sprintf("Corrected IR interaction comparison M3 vs M4 (anova) p-value: %.6g",
-          ir_res$anova_m3_m4$`Pr(>F)`[2]),
-  sprintf("Corrected IR BF(M4/M3): %.6g (%s)",
+  sprintf("Corrected IR interaction M3 vs M4 (robust Wald HC3): F(%d,%d)=%.4f, p=%.6g",
+          ir_res$anova_m3_m4$Df[2], ir_res$anova_m3_m4$`Res.Df`[2],
+          ir_res$anova_m3_m4$F[2], ir_res$anova_m3_m4$`Pr(>F)`[2]),
+  sprintf("Corrected IR BF(interact/main): %.6g (%s)",
           ir_res$bf_interaction_m4_over_m3,
           interpret_bf(ir_res$bf_interaction_m4_over_m3)),
-  sprintf("WR Accuracy interaction comparison M3 vs M4 (anova) p-value: %.6g",
-          wr_res$anova_m3_m4$`Pr(>F)`[2]),
-  sprintf("WR Accuracy BF(M4/M3): %.6g (%s)",
+  sprintf("WR Accuracy interaction M3 vs M4 (robust Wald HC3): F(%d,%d)=%.4f, p=%.6g",
+          wr_res$anova_m3_m4$Df[2], wr_res$anova_m3_m4$`Res.Df`[2],
+          wr_res$anova_m3_m4$F[2], wr_res$anova_m3_m4$`Pr(>F)`[2]),
+  sprintf("WR Accuracy BF(interact/main): %.6g (%s)",
           wr_res$bf_interaction_m4_over_m3,
           interpret_bf(wr_res$bf_interaction_m4_over_m3)),
   "",
@@ -314,7 +370,8 @@ report_lines <- c(
   "Unstandardized coefficients (beta, SE, t, p, 95% CI) are saved as:",
   "- outputs/glm/corrected_ir_best_model_coefficients.csv",
   "- outputs/glm/wr_accuracy_best_model_coefficients.csv",
-  "Standardized-coefficient models are saved as:",
+  "Standardized-coefficient models refit the best model with mean_rt and mean_trial_position",
+  "z-scored inline (scale()). Factor terms are unchanged. Results are saved as:",
   "- outputs/glm/corrected_ir_best_model_standardized_coefficients.csv",
   "- outputs/glm/wr_accuracy_best_model_standardized_coefficients.csv",
   ""
