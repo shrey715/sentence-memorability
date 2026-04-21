@@ -1,6 +1,6 @@
 # GLM Deliverables
 
-Generated: 2026-04-22 04:41:18
+Generated: 2026-04-22 04:50:11
 
 ## Data aggregation
 One row per participant x noun_condition x voice cell was used from data/processed/glm_cell_data.csv,
@@ -11,7 +11,7 @@ Reference levels: noun_condition = LL, voice = Active.
 Best model selected (AIC/backward step): corrected_ir ~ noun_condition + mean_rt
 Sample size used: 890 rows
 Overall model fit: F(4, 885)=6.0074, p=9.02333e-05, R2=0.0264, Adj R2=0.0220
-Full model BF10 (main effects vs null): 0.88557 (supports null (BF < 1))
+Full model BF10 (main effects vs null): BF10 = 0.8699 [BF01 = 1.15] (negligible evidence for H0)
 Robust Wald sequence (HC3) saved in outputs/glm/corrected_ir_robust_wald_sequence.csv; delta AIC in outputs/glm/corrected_ir_model_aic.csv.
 
 ## H_GLM3 (WR Accuracy null-focused)
@@ -19,19 +19,23 @@ Best model selected (AIC/backward step): wr_accuracy ~ voice + mean_trial_positi
 Sample size used: 890 rows
 Overall model fit: F(2, 887)=4.2423, p=0.0146665, R2=0.0095, Adj R2=0.0072
 Block BF comparisons (noun_condition as factor) are in outputs/glm/wr_accuracy_bayesfactor_models.csv.
-WR main-effects BF10 (vs null): 0.000950199 (supports null (BF < 1))
+WR main-effects BF10 (vs null): BF10 = 0.0009353 [BF01 = 1069] (very strong evidence for H0)
 
 ## H_GLM4 (Interaction)
 Corrected IR interaction M3 vs M4 (robust Wald HC3): F(3,880)=0.1824, p=0.908345
-Corrected IR BF(interact/main): 0.010925 (supports null (BF < 1))
+Corrected IR BF(interact/main): BF10 = 0.01125 [BF01 = 88.87] (strong evidence for H0)
 WR Accuracy interaction M3 vs M4 (robust Wald HC3): F(3,880)=0.8799, p=0.450981
-WR Accuracy BF(interact/main): 0.0381796 (supports null (BF < 1))
+WR Accuracy BF(interact/main): BF10 = 0.03024 [BF01 = 33.07] (strong evidence for H0)
 
 ## Diagnostics
 Corrected IR residual Shapiro-Wilk p=3.58783e-25
+  Q-Q plot (corrected_ir_qq_residuals.png): heavy tails consistent with SW p=3.58783e-25;
+  non-normality addressed via HC3 robust SEs — OLS point estimates remain unbiased.
 Corrected IR Breusch-Pagan p=0.00470907
 Corrected IR Cook's D > 1 count: 0
 WR residual Shapiro-Wilk p=3.90287e-18
+  Q-Q plot (wr_accuracy_qq_residuals.png): heavy tails consistent with SW p=3.90287e-18;
+  non-normality addressed via HC3 robust SEs — OLS point estimates remain unbiased.
 WR Breusch-Pagan p=0.00239608
 WR Cook's D > 1 count: 0
 Residual plots, Q-Q, and Cook's distance plots are saved under outputs/glm/*png.

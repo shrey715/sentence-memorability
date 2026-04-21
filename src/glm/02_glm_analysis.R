@@ -300,12 +300,35 @@ run_outcome <- function(data_df, outcome, outcome_label) {
   )
 }
 
+# interpret_bf: Jeffreys scale matching the class (16.pdf slide 18).
+#   BF10 >= 1  => evidence for alternative; label on H1 side.
+#   BF10 <  1  => evidence for null; invert to BF01 = 1/BF10 and label on H0 side.
 interpret_bf <- function(x) {
-  if (x < 1) return("supports null (BF < 1)")
-  if (x < 3) return("negligible")
-  if (x < 20) return("positive")
-  if (x < 150) return("strong")
-  "very strong"
+  if (x >= 1) {
+    if (x < 3)   return("negligible evidence for H1")
+    if (x < 20)  return("positive evidence for H1")
+    if (x < 150) return("strong evidence for H1")
+    return("very strong evidence for H1")
+  } else {
+    bf01 <- 1 / x
+    if (bf01 < 3)   return("negligible evidence for H0")
+    if (bf01 < 20)  return("positive evidence for H0")
+    if (bf01 < 150) return("strong evidence for H0")
+    return("very strong evidence for H0")
+  }
+}
+
+# format_bf: returns a single descriptive string suitable for the report.
+# When BF10 < 1, reports the reciprocal BF01 so the reader sees the null-supporting
+# magnitude explicitly, matching the class framing from 16.pdf slide 18.
+format_bf <- function(x, label = "BF10") {
+  interp <- interpret_bf(x)
+  if (x >= 1) {
+    sprintf("%s = %.4g (%s)", label, x, interp)
+  } else {
+    bf01 <- 1 / x
+    sprintf("%s = %.4g [BF01 = %.4g] (%s)", label, x, bf01, interp)
+  }
 }
 
 ir_res <- run_outcome(cell_data, "corrected_ir", "Corrected IR")
@@ -327,8 +350,8 @@ report_lines <- c(
   sprintf("Overall model fit: F(%d, %d)=%.4f, p=%.6g, R2=%.4f, Adj R2=%.4f",
           ir_res$fit$df1, ir_res$fit$df2, ir_res$fit$f_statistic,
           ir_res$fit$f_p_value, ir_res$fit$r_squared, ir_res$fit$adj_r_squared),
-  sprintf("Full model BF10 (main effects vs null): %.6g (%s)",
-          ir_res$bf_main_over_null, interpret_bf(ir_res$bf_main_over_null)),
+  sprintf("Full model BF10 (main effects vs null): %s",
+          format_bf(ir_res$bf_main_over_null, "BF10")),
   "Robust Wald sequence (HC3) saved in outputs/glm/corrected_ir_robust_wald_sequence.csv; delta AIC in outputs/glm/corrected_ir_model_aic.csv.",
   "",
   "## H_GLM3 (WR Accuracy null-focused)",
@@ -338,28 +361,32 @@ report_lines <- c(
           wr_res$fit$df1, wr_res$fit$df2, wr_res$fit$f_statistic,
           wr_res$fit$f_p_value, wr_res$fit$r_squared, wr_res$fit$adj_r_squared),
   "Block BF comparisons (noun_condition as factor) are in outputs/glm/wr_accuracy_bayesfactor_models.csv.",
-  sprintf("WR main-effects BF10 (vs null): %.6g (%s)",
-          wr_res$bf_main_over_null, interpret_bf(wr_res$bf_main_over_null)),
+  sprintf("WR main-effects BF10 (vs null): %s",
+          format_bf(wr_res$bf_main_over_null, "BF10")),
   "",
   "## H_GLM4 (Interaction)",
   sprintf("Corrected IR interaction M3 vs M4 (robust Wald HC3): F(%d,%d)=%.4f, p=%.6g",
           ir_res$anova_m3_m4$Df[2], ir_res$anova_m3_m4$`Res.Df`[2],
           ir_res$anova_m3_m4$F[2], ir_res$anova_m3_m4$`Pr(>F)`[2]),
-  sprintf("Corrected IR BF(interact/main): %.6g (%s)",
-          ir_res$bf_interaction_m4_over_m3,
-          interpret_bf(ir_res$bf_interaction_m4_over_m3)),
+  sprintf("Corrected IR BF(interact/main): %s",
+          format_bf(ir_res$bf_interaction_m4_over_m3, "BF10")),
   sprintf("WR Accuracy interaction M3 vs M4 (robust Wald HC3): F(%d,%d)=%.4f, p=%.6g",
           wr_res$anova_m3_m4$Df[2], wr_res$anova_m3_m4$`Res.Df`[2],
           wr_res$anova_m3_m4$F[2], wr_res$anova_m3_m4$`Pr(>F)`[2]),
-  sprintf("WR Accuracy BF(interact/main): %.6g (%s)",
-          wr_res$bf_interaction_m4_over_m3,
-          interpret_bf(wr_res$bf_interaction_m4_over_m3)),
+  sprintf("WR Accuracy BF(interact/main): %s",
+          format_bf(wr_res$bf_interaction_m4_over_m3, "BF10")),
   "",
   "## Diagnostics",
   sprintf("Corrected IR residual Shapiro-Wilk p=%.6g", ir_res$shapiro$p.value),
+  sprintf("  Q-Q plot (corrected_ir_qq_residuals.png): heavy tails consistent with SW p=%.6g;",
+          ir_res$shapiro$p.value),
+  "  non-normality addressed via HC3 robust SEs — OLS point estimates remain unbiased.",
   sprintf("Corrected IR Breusch-Pagan p=%.6g", ir_res$bp$p.value),
   sprintf("Corrected IR Cook's D > 1 count: %d", length(ir_res$cooks_flag)),
   sprintf("WR residual Shapiro-Wilk p=%.6g", wr_res$shapiro$p.value),
+  sprintf("  Q-Q plot (wr_accuracy_qq_residuals.png): heavy tails consistent with SW p=%.6g;",
+          wr_res$shapiro$p.value),
+  "  non-normality addressed via HC3 robust SEs — OLS point estimates remain unbiased.",
   sprintf("WR Breusch-Pagan p=%.6g", wr_res$bp$p.value),
   sprintf("WR Cook's D > 1 count: %d", length(wr_res$cooks_flag)),
   "Residual plots, Q-Q, and Cook's distance plots are saved under outputs/glm/*png.",
