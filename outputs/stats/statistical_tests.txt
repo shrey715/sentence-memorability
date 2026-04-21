@@ -22,9 +22,9 @@ FRIEDMAN'S TEST: Corrected IR ~ noun_condition
 	Friedman rank sum test
 
 data:  ir_cr and noun_condition and participant_id
-Friedman chi-squared = 22.391, df = 3, p-value = 0.00005408
+Friedman chi-squared = 22.493, df = 3, p-value = 0.00005149
 
-  Kendall's W = 0.0666
+  Kendall's W = 0.0669
   (Benchmarks: W ~ .1 small, .3 medium, .5 large per Tomczak & Tomczak 2014)
 
   Omnibus significant at family-wise alpha = 0.0167
@@ -36,10 +36,10 @@ Friedman chi-squared = 22.391, df = 3, p-value = 0.00005408
 
 data:  cr_collapsed[[metric_col]] and cr_collapsed$noun_condition 
 
-   HH     HL       LH    
-HL 1.0000 -        -     
-LH 1.0000 0.4456   -     
-LL 0.0016 0.000027 0.0186
+   HH      HL       LH     
+HL 0.75559 -        -      
+LH 0.63667 0.63667  -      
+LL 0.00054 0.000091 0.01242
 
 P value adjustment method: holm 
   Holm-corrected alpha (most conservative threshold): 0.0083
@@ -47,12 +47,12 @@ P value adjustment method: holm
 # A tibble: 6 × 7
   .y.   group1 group2 effsize    n1    n2 magnitude
 * <chr> <chr>  <chr>    <dbl> <int> <int> <ord>    
-1 ir_cr HH     HL      0.0379   112   112 small    
-2 ir_cr HH     LH      0.0762   112   112 small    
-3 ir_cr HH     LL      0.360    112   112 moderate 
-4 ir_cr HL     LH      0.188    112   112 small    
-5 ir_cr HL     LL      0.409    112   112 moderate 
-6 ir_cr LH     LL      0.268    112   112 small    
+1 ir_cr HH     HL      0.0269   112   112 small    
+2 ir_cr HH     LH      0.105    112   112 small    
+3 ir_cr HH     LL      0.372    112   112 moderate 
+4 ir_cr HL     LH      0.170    112   112 small    
+5 ir_cr HL     LL      0.402    112   112 moderate 
+6 ir_cr LH     LL      0.265    112   112 small    
 
 ================================================================
 FRIEDMAN'S TEST: WR Accuracy ~ noun_condition
@@ -132,13 +132,13 @@ mixed factorial designs; as both factors are within-participants here,
 the H statistics should be interpreted with caution as an approximation.
 ================================================================
                       Df   Sum Sq       H p.value
-noun_condition         3   753788 11.2603 0.01040
-voice                  1    50715  0.7576 0.38408
-noun_condition:voice   3    14610  0.2183 0.97459
-Residuals            888 59093821                
-  eta^2_H (noun_condition) = 0.9202
-  eta^2_H (voice)          = 0.0619
-  eta^2_H (interaction)    = 0.0178
+noun_condition         3   704089 11.9019 0.00773
+voice                  1    81874  1.3840 0.23942
+noun_condition:voice   3     5777  0.0977 0.99212
+Residuals            888 52154488                
+  eta^2_H (noun_condition) = 0.0100
+  eta^2_H (voice)          = 0.0004
+  eta^2_H (interaction)    = -0.0078
   (eta^2_H benchmarks: .01 small, .06 medium, .14 large)
 
   Sensitivity check: Friedman per voice level (Corrected IR)
@@ -157,9 +157,9 @@ noun_condition         3   161329 2.5101 0.47346
 voice                  1    76280 1.1869 0.27597
 noun_condition:voice   3   276066 4.2953 0.23129
 Residuals            882 56622631               
-  eta^2_H (noun_condition) = 0.3141
-  eta^2_H (voice)          = 0.1485
-  eta^2_H (interaction)    = 0.5374
+  eta^2_H (noun_condition) = -0.0005
+  eta^2_H (voice)          = 0.0002
+  eta^2_H (interaction)    = -0.0030
   (eta^2_H benchmarks: .01 small, .06 medium, .14 large)
 
   Sensitivity check: Friedman per voice level (WR Accuracy)
@@ -173,11 +173,11 @@ Paired Wilcoxon: Corrected IR — Active vs Passive (collapsed)
 	Wilcoxon signed rank test with continuity correction
 
 data:  voice_agg$ir_cr_mean_Active and voice_agg$ir_cr_mean_Passive
-V = 1916.5, p-value = 0.4853
+V = 1816, p-value = 0.3516
 alternative hypothesis: true location shift is not equal to 0
 
-  Active M = 0.6683 | Passive M = 0.6769
-  rank-biserial r = 0.0659 (|Z| = 0.698, N = 112)
+  Active M = 0.8279 | Passive M = 0.8365
+  rank-biserial r = 0.1002
 
 ================================================================
 Paired Wilcoxon: WR Accuracy — Active vs Passive (collapsed)
@@ -190,7 +190,7 @@ V = 3520.5, p-value = 0.1142
 alternative hypothesis: true location shift is not equal to 0
 
   Active M = 0.7563 | Passive M = 0.7342
-  rank-biserial r = 0.1493 (|Z| = 1.580, N = 112)
+  rank-biserial r = 0.1488
 
 ================================================================
 GROUP-WISE VOICE TEST (F6b): Active vs Passive within each condition
@@ -198,20 +198,20 @@ GROUP-WISE VOICE TEST (F6b): Active vs Passive within each condition
 ================================================================
 
   --- Condition: HH ---
-    IR CR [HH]: V = 966, p = 0.7736, r = 0.027 (N pairs = 112)
+    IR CR [HH]: V = 942, p = 0.6465, r = 0.097 (N pairs = 112)
     WR Acc [HH]: V = 1794, p = 0.4955, r = 0.065 (N pairs = 111)
 
   --- Condition: HL ---
-    IR CR [HL]: V = 1070, p = 0.6681, r = 0.041 (N pairs = 112)
-    WR Acc [HL]: V = 2672, p = 0.0381 *, r = 0.197 (N pairs = 111)
+    IR CR [HL]: V = 1006, p = 0.9944, r = 0.008 (N pairs = 112)
+    WR Acc [HL]: V = 2672, p = 0.0381 *, r = 0.202 (N pairs = 111)
 
   --- Condition: LH ---
-    IR CR [LH]: V = 1035, p = 0.8546, r = 0.017 (N pairs = 112)
-    WR Acc [LH]: V = 1794, p = 0.9679, r = 0.004 (N pairs = 110)
+    IR CR [LH]: V = 946, p = 0.6674, r = 0.053 (N pairs = 112)
+    WR Acc [LH]: V = 1794, p = 0.9679, r = 0.005 (N pairs = 110)
 
   --- Condition: LL ---
-    IR CR [LL]: V = 1302, p = 0.5166, r = 0.061 (N pairs = 112)
-    WR Acc [LL]: V = 2554, p = 0.4096, r = 0.079 (N pairs = 110)
+    IR CR [LL]: V = 1321, p = 0.5820, r = 0.055 (N pairs = 112)
+    WR Acc [LL]: V = 2554, p = 0.4096, r = 0.072 (N pairs = 110)
 
 ================================================================
 One-Sample Wilcoxon: WR Accuracy — Active voice vs chance (0.5)

@@ -270,13 +270,20 @@ run_srh <- function(metric_col, label) {
     .stat_lines <<- c(.stat_lines, capture.output(print(srh)))
     print(srh)
 
-    # F5: η²_H per term = H_term / sum(H_all_terms)
-    h_vals <- srh$H
-    eta_H  <- round(h_vals / sum(h_vals, na.rm = TRUE), 4)
+    # F5: η²_H per term = (H - (k-1)) / (N - k)
+    N_total <- nrow(cr_scores)
+    k_cond <- nlevels(cr_scores$noun_condition)
+    k_voice <- nlevels(cr_scores$voice)
+    k_int <- k_cond * k_voice
+
+    eta_H_cond <- (srh$H[1] - (k_cond - 1)) / (N_total - k_cond)
+    eta_H_voice <- (srh$H[2] - (k_voice - 1)) / (N_total - k_voice)
+    eta_H_int <- (srh$H[3] - (k_int - 1)) / (N_total - k_int)
+
     .log(
-        sprintf("  eta^2_H (noun_condition) = %.4f", eta_H[1]),
-        sprintf("  eta^2_H (voice)          = %.4f", eta_H[2]),
-        sprintf("  eta^2_H (interaction)    = %.4f", eta_H[3]),
+        sprintf("  eta^2_H (noun_condition) = %.4f", eta_H_cond),
+        sprintf("  eta^2_H (voice)          = %.4f", eta_H_voice),
+        sprintf("  eta^2_H (interaction)    = %.4f", eta_H_int),
         "  (eta^2_H benchmarks: .01 small, .06 medium, .14 large)"
     )
 
@@ -350,15 +357,17 @@ wsr_ir <- wilcox.test(voice_agg$ir_cr_mean_Active, voice_agg$ir_cr_mean_Passive,
 .stat_lines <<- c(.stat_lines, capture.output(print(wsr_ir)))
 print(wsr_ir)
 
-# rank-biserial r: r = Z / sqrt(N)
-N_voice  <- nrow(voice_agg)
-Z_ir     <- qnorm(wsr_ir$p.value / 2) * ifelse(wsr_ir$statistic > 0, 1, -1)
-r_ir     <- abs(Z_ir) / sqrt(N_voice)
+# rank-biserial r: wilcox_effsize(paired=TRUE)
+voice_ir_long <- voice_agg %>%
+    select(participant_id, starts_with("ir_cr_mean_")) %>%
+    pivot_longer(cols = -participant_id, names_to = "voice", names_prefix = "ir_cr_mean_", values_to = "ir_cr")
+r_ir_res <- wilcox_effsize(voice_ir_long, ir_cr ~ voice, paired = TRUE)
+
 .log(
     sprintf("  Active M = %.4f | Passive M = %.4f",
             mean(voice_agg$ir_cr_mean_Active, na.rm = TRUE),
             mean(voice_agg$ir_cr_mean_Passive, na.rm = TRUE)),
-    sprintf("  rank-biserial r = %.4f (|Z| = %.3f, N = %d)", r_ir, abs(Z_ir), N_voice)
+    sprintf("  rank-biserial r = %.4f", r_ir_res$effsize)
 )
 
 # WR Accuracy: Active vs Passive
@@ -372,13 +381,16 @@ wsr_wr <- wilcox.test(voice_agg$wr_acc_mean_Active, voice_agg$wr_acc_mean_Passiv
 .stat_lines <<- c(.stat_lines, capture.output(print(wsr_wr)))
 print(wsr_wr)
 
-Z_wr <- qnorm(wsr_wr$p.value / 2) * ifelse(wsr_wr$statistic > 0, 1, -1)
-r_wr <- abs(Z_wr) / sqrt(N_voice)
+voice_wr_long <- voice_agg %>%
+    select(participant_id, starts_with("wr_acc_mean_")) %>%
+    pivot_longer(cols = -participant_id, names_to = "voice", names_prefix = "wr_acc_mean_", values_to = "wr_acc")
+r_wr_res <- wilcox_effsize(voice_wr_long, wr_acc ~ voice, paired = TRUE)
+
 .log(
     sprintf("  Active M = %.4f | Passive M = %.4f",
             mean(voice_agg$wr_acc_mean_Active, na.rm = TRUE),
             mean(voice_agg$wr_acc_mean_Passive, na.rm = TRUE)),
-    sprintf("  rank-biserial r = %.4f (|Z| = %.3f, N = %d)", r_wr, abs(Z_wr), N_voice)
+    sprintf("  rank-biserial r = %.4f", r_wr_res$effsize)
 )
 
 # ── F6b: Group-Wise Voice Tests — Per Noun Condition ────────────────────────
@@ -429,8 +441,11 @@ for (cond in levels(cr_scores$noun_condition)) {
                           paired = TRUE, exact = FALSE)
 
         N_c <- sum(complete_pairs)
-        Z_c <- qnorm(wt$p.value / 2) * ifelse(wt$statistic > 0, 1, -1)
-        r_c <- abs(Z_c) / sqrt(N_c)
+        sub_metric <- sub_wide[complete_pairs, ] %>%
+            select(participant_id, all_of(c(active_col, passive_col))) %>%
+            pivot_longer(cols = -participant_id, names_to = "voice", values_to = "val")
+        r_c_res <- wilcox_effsize(sub_metric, val ~ voice, paired = TRUE)
+        r_c <- r_c_res$effsize
 
         sig_flag <- if (wt$p.value < 0.05) " *" else ""
         .log(sprintf(

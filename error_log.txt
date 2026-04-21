@@ -1,7 +1,7 @@
 ================================================================
   SDT Analysis — Signal Detection Theory Extension
 ================================================================
-  Run : 2026-04-22 00:58:25
+  Run : 2026-04-22 00:57:46
 
   Participants : 112 | Rows : 448
 
@@ -204,16 +204,39 @@ mean difference
 SDT-H4: Convergent Validity — Spearman rho(d', Corrected IR)
 (rho > .80: Corrected IR adequate proxy; <.70: bias contamination)
 ================================================================
- noun_condition   rho   n
-             HH 0.778 112
-             HL 0.713 112
-             LH 0.745 112
-             LL 0.737 112
-  Overall rho (pooled) = 0.758
-  Interpretation: rho in [.70,.80) — moderate fidelity.
-
-
-================================================================
-  SDT analysis complete : 2026-04-22 00:58:31
-  Saved -> outputs/sdt/sdt_stats.txt
-================================================================
+Error in `left_join()`:
+! Can't join `x$participant_id` with `y$participant_id` due to
+  incompatible types.
+ℹ `x$participant_id` is a <factor<d35e3>>.
+ℹ `y$participant_id` is a <integer>.
+Backtrace:
+     ▆
+  1. ├─... %>% ...
+  2. ├─dplyr::summarise(...)
+  3. ├─dplyr::group_by(., noun_condition)
+  4. ├─dplyr::left_join(., cr_coll, by = c("participant_id", "noun_condition"))
+  5. ├─dplyr:::left_join.data.frame(., cr_coll, by = c("participant_id", "noun_condition"))
+  6. │ └─dplyr:::join_mutate(...)
+  7. │   └─dplyr:::join_cast_common(x_key, y_key, vars, error_call = error_call)
+  8. │     └─dplyr:::join_ptype_common(x, y, vars, error_call = error_call)
+  9. │       ├─rlang::try_fetch(...)
+ 10. │       │ └─base::withCallingHandlers(...)
+ 11. │       └─vctrs::vec_ptype2(x, y, x_arg = "", y_arg = "", call = error_call)
+ 12. ├─vctrs (local) `<fn>`()
+ 13. │ └─vctrs::vec_default_ptype2(...)
+ 14. │   ├─base::withRestarts(...)
+ 15. │   │ └─base (local) withOneRestart(expr, restarts[[1L]])
+ 16. │   │   └─base (local) doWithOneRestart(return(expr), restart)
+ 17. │   └─vctrs::stop_incompatible_type(...)
+ 18. │     └─vctrs:::stop_incompatible(...)
+ 19. │       └─vctrs:::stop_vctrs(...)
+ 20. │         └─rlang::abort(message, class = c(class, "vctrs_error"), ..., call = call)
+ 21. │           └─rlang:::signal_abort(cnd, .file)
+ 22. │             └─base::signalCondition(cnd)
+ 23. └─rlang (local) `<fn>`(`<vctrs__2>`)
+ 24.   └─handlers[[1L]](cnd)
+ 25.     └─dplyr:::rethrow_error_join_incompatible_type(cnd, vars, error_call)
+ 26.       └─dplyr:::stop_join(...)
+ 27.         └─dplyr:::stop_dplyr(...)
+ 28.           └─rlang::abort(...)
+Execution halted
