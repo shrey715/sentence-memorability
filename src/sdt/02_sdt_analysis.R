@@ -115,7 +115,7 @@ run_rmanova <- function(metric_col, label) {
   print(res$`Mauchly's Test for Sphericity`)
 
   mauchly_p <- res$`Mauchly's Test for Sphericity`$p
-  sphericity_ok <- !is.null(mauchly_p) && mauchly_p >= 0.05
+  sphericity_ok <- !is.null(mauchly_p) && !is.na(mauchly_p) && mauchly_p >= 0.05
 
   # Main ANOVA table (GG-corrected automatically if violated)
   cat("\n── ANOVA Table")
@@ -249,7 +249,7 @@ if (sw_diff_d$p.value >= 0.05) {
   print(tt_d)
   sdt_v_agg$diff_d <- sdt_v_agg$dprime_Active - sdt_v_agg$dprime_Passive
   d_d <- cohens_d(sdt_v_agg, diff_d ~ 1)  # one-sample on differences
-  cat(sprintf("  Cohen's d = %.4f\n", abs(as.numeric(d_d$effsize))))
+  cat(sprintf("  Cohen's d = %.4f (positive = Active > Passive)\n", as.numeric(d_d$effsize)))
 } else {
   wt_d <- wilcox.test(sdt_v_agg$dprime_Active, sdt_v_agg$dprime_Passive, paired=TRUE, exact=FALSE)
   print(wt_d)
@@ -269,7 +269,7 @@ if (sw_diff_c$p.value >= 0.05) {
   print(tt_c)
   sdt_v_agg$diff_c <- sdt_v_agg$c_crit_Active - sdt_v_agg$c_crit_Passive
   d_c <- cohens_d(sdt_v_agg, diff_c ~ 1)
-  cat(sprintf("  Cohen's d = %.4f\n", abs(as.numeric(d_c$effsize))))
+  cat(sprintf("  Cohen's d = %.4f (positive = Active > Passive)\n", as.numeric(d_c$effsize)))
 } else {
   wt_c <- wilcox.test(sdt_v_agg$c_crit_Active, sdt_v_agg$c_crit_Passive, paired=TRUE, exact=FALSE)
   print(wt_c)
@@ -299,12 +299,15 @@ conv <- sdt %>%
             .groups = "drop")
 print(as.data.frame(conv), row.names = FALSE)
 
-overall_rho <- cor(
-  left_join(sdt, cr_coll, by=c("participant_id","noun_condition"))$dprime,
-  left_join(sdt, cr_coll, by=c("participant_id","noun_condition"))$ir_cr,
-  method="spearman", use="complete.obs"
+cor_test_result <- cor.test(
+    left_join(sdt, cr_coll, by=c("participant_id","noun_condition"))$dprime,
+    left_join(sdt, cr_coll, by=c("participant_id","noun_condition"))$ir_cr,
+    method = "spearman", exact = FALSE
 )
-cat(sprintf("  Overall rho (pooled) = %.3f\n", overall_rho))
+overall_rho <- cor_test_result$estimate
+cat(sprintf("  Overall rho = %.3f, S = %.0f, p = %.4f\n",
+            overall_rho, cor_test_result$statistic,
+            cor_test_result$p.value))
 cat(sprintf("  Interpretation: %s\n",
             ifelse(overall_rho >= 0.80,
                    "rho >= .80 — Corrected IR is an adequate proxy for d'.",

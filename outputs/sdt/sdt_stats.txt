@@ -1,7 +1,7 @@
 ================================================================
   SDT Analysis — Signal Detection Theory Extension
 ================================================================
-  Run : 2026-04-22 00:58:25
+  Run : 2026-04-22 01:04:09
 
   Participants : 112 | Rows : 448
 
@@ -183,7 +183,7 @@ sample estimates:
 mean difference 
     -0.03652737 
 
-  Cohen's d = 0.1195
+  Cohen's d = -0.1195 (positive = Active > Passive)
 
 -- c: Active M=0.092 vs Passive M=0.074
 
@@ -198,7 +198,7 @@ sample estimates:
 mean difference 
      0.01826369 
 
-  Cohen's d = 0.1195
+  Cohen's d = 0.1195 (positive = Active > Passive)
 
 ================================================================
 SDT-H4: Convergent Validity — Spearman rho(d', Corrected IR)
@@ -209,11 +209,11 @@ SDT-H4: Convergent Validity — Spearman rho(d', Corrected IR)
              HL 0.713 112
              LH 0.745 112
              LL 0.737 112
-  Overall rho (pooled) = 0.758
+  Overall rho = 0.758, S = 3626310, p = 0.0000
   Interpretation: rho in [.70,.80) — moderate fidelity.
 
 
 ================================================================
-  SDT analysis complete : 2026-04-22 00:58:31
+  SDT analysis complete : 2026-04-22 01:04:13
   Saved -> outputs/sdt/sdt_stats.txt
 ================================================================

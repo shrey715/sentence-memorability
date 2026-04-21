@@ -138,7 +138,7 @@ noun_condition:voice   3     5777  0.0977 0.99212
 Residuals            888 52154488                
   eta^2_H (noun_condition) = 0.0100
   eta^2_H (voice)          = 0.0004
-  eta^2_H (interaction)    = -0.0078
+  eta^2_H (interaction)    = -0.0033
   (eta^2_H benchmarks: .01 small, .06 medium, .14 large)
 
   Sensitivity check: Friedman per voice level (Corrected IR)
@@ -159,7 +159,7 @@ noun_condition:voice   3   276066 4.2953 0.23129
 Residuals            882 56622631               
   eta^2_H (noun_condition) = -0.0005
   eta^2_H (voice)          = 0.0002
-  eta^2_H (interaction)    = -0.0030
+  eta^2_H (interaction)    = 0.0015
   (eta^2_H benchmarks: .01 small, .06 medium, .14 large)
 
   Sensitivity check: Friedman per voice level (WR Accuracy)
@@ -223,7 +223,7 @@ data:  voice_agg$wr_acc_mean_Active
 V = 6317.5, p-value < 0.00000000000000022
 alternative hypothesis: true location is greater than 0.5
 
-  rank-biserial r (Active vs chance) = 0.8650
+  rank-biserial r (Active vs chance) = 0.8650 (N_nonzero = 112)
 
 ================================================================
 One-Sample Wilcoxon: WR Accuracy — Passive voice vs chance (0.5)
@@ -235,4 +235,4 @@ data:  voice_agg$wr_acc_mean_Passive
 V = 6202, p-value < 0.00000000000000022
 alternative hypothesis: true location is greater than 0.5
 
-  rank-biserial r (Passive vs chance) = 0.8333
+  rank-biserial r (Passive vs chance) = 0.8333 (N_nonzero = 112)

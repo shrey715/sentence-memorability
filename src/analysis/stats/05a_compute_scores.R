@@ -210,16 +210,22 @@ desc_table <- cr_scores %>%
         Median = round(median(value, na.rm = TRUE), 4),
         Min    = round(min(value, na.rm = TRUE), 4),
         Max    = round(max(value, na.rm = TRUE), 4),
-        CI_lower = round({
+        quantiles = list({
             v <- value[!is.na(value)]
-            quantile(replicate(1000, mean(sample(v, replace = TRUE))), 0.025)
-        }, 4),
-        CI_upper = round({
-            v <- value[!is.na(value)]
-            quantile(replicate(1000, mean(sample(v, replace = TRUE))), 0.975)
-        }, 4),
+            if (length(v) > 0) {
+                bs <- replicate(1000, mean(sample(v, replace = TRUE)))
+                quantile(bs, c(0.025, 0.975))
+            } else {
+                c(NA, NA)
+            }
+        }),
         .groups = "drop"
-    )
+    ) %>%
+    mutate(
+        CI_lower = round(sapply(quantiles, `[`, 1), 4),
+        CI_upper = round(sapply(quantiles, `[`, 2), 4)
+    ) %>%
+    select(-quantiles)
 
 cat("\n    Descriptive statistics:\n")
 print(as.data.frame(desc_table), row.names = FALSE)
