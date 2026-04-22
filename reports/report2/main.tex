@@ -46,9 +46,7 @@
 \linespread{1.15}
 
 % ---- convenience commands -----------------------------------
-\newcommand{\pval}[1]{$p #1$}
-\newcommand{\Mscore}[1]{$M = #1$}
-\newcommand{\SDscore}[1]{$SD = #1$}
+
 
 \begin{document}
 
@@ -371,7 +369,9 @@ the three experimental blocks.
 
 A total of \textbf{112 participants} contributed data from
 \textbf{329 validated blocks} (96.2\% pass rate), yielding
-\textbf{896 trial-level observations}. The global IR false alarm
+\textbf{896 participant-by-cell observations} (112 participants
+$\times$ 8 within-participant cells, used as the GLM and
+descriptive-statistics unit). The global IR false alarm
 rate was $M = 0.160$ ($SD = 0.104$, range: $0.00$--$0.43$),
 reflecting meaningful individual response bias that Corrected IR
 controls for. All key metrics departed significantly from normality
@@ -517,12 +517,23 @@ interaction} ($H = 0.22$, $p = .975$, $\eta^2_H = 0.000$).
 For \textbf{WR accuracy}: no significant main effects or interaction
 (all $p > .23$). These results support H4 (no interaction).
 
+\textbf{Note on test statistic discrepancy:} The SRH noun condition
+effect ($H = 11.26$, $p = .010$) is smaller than the marginal Friedman
+statistic from Section~\ref{sec:h1} ($\chi^2(3) = 22.39$, $p < .001$)
+because SRH partitions the total sum of squares across the full
+$4 \times 2$ factorial structure, whereas the Friedman test operates on
+the marginal distribution collapsed across voice. The two tests are
+not contradictory --- they address different questions (marginal condition
+effect vs.\ condition effect in the presence of voice).
+
 Sensitivity checks: Friedman's tests run separately within each voice
 level confirmed the noun condition effect for Active sentences
 ($\chi^2(3) = 11.09$, $p = .011$) but not for Passive alone
-($\chi^2(3) = 7.68$, $p = .053$), suggesting the passive effect is
-present but weaker, as expected given the HF lures are all
-active-voice (see SDT section for the implication).
+($\chi^2(3) = 7.68$, $p = .053$). These sensitivity checks are treated
+as \textbf{exploratory secondary analyses} and are not subject to the
+family-wise $\alpha_{\text{FW}} = .0167$ correction applied to the three
+primary omnibus tests. The Active $p = .011$ falls below the uncorrected
+.05 threshold but should not be interpreted as confirmatory.
 
 % ------------------------------------------------------------
 \subsection{Voice Main Effects}
@@ -549,11 +560,13 @@ differences are tightly centred on zero. The directional trend
 reconstruction bias documented by \citet{james1973}, but does not reach
 significance at this sample size.
 
-Group-wise voice tests (paired Wilcoxon within each noun condition)
-found a borderline voice effect on WR only in the HL condition
-($V = 2672$, $p = .038$, $r = .197$; Active WR $> $ Passive WR),
-with all other conditions non-significant ($p > .40$). This isolated
-effect should be interpreted cautiously given the number of comparisons.
+Group-wise voice tests (paired Wilcoxon within each noun condition,
+\textbf{exploratory, no FWER correction}) found a borderline voice
+effect on WR only in the HL condition ($V = 2672$, $p_\text{uncorr} = .038$,
+$r = .197$; Active WR $> $ Passive WR), with all other conditions
+non-significant ($p > .40$). Applying Holm correction across these four
+condition-level comparisons would render this effect non-significant;
+it is reported here as an observation only.
 
 % ------------------------------------------------------------
 \subsection{IR Reaction Time}
@@ -646,6 +659,14 @@ Shapiro-Wilk tests on $d'$ per condition group confirmed normality
 ANOVA for $d'$ and $c$. For $A'$ (bounded [0.5, 1]), Friedman's test
 was used.
 
+\textbf{Note on test selection:} The normality assumption failed for
+Corrected IR and WR Accuracy at the participant level (all cells
+$p < .001$, Section~2.6.1), necessitating non-parametric inference in
+Section~3. However, $d'$ values are z-score transformations derived from
+larger trial pools and are structurally more Gaussian; per-group
+Shapiro-Wilk tests confirmed normality in all four conditions
+($p > .09$), justifying the switch to RM-ANOVA in this section.
+
 \textbf{RM-ANOVA on $d'$}: Mauchly's sphericity test was
 non-significant ($W = 0.961$, $p = .492$), so sphericity was assumed.
 \[
@@ -737,7 +758,8 @@ for $d'$, validating the core non-parametric analyses.
 GLMs were fit to examine multivariate predictors of Corrected IR and
 WR Accuracy at the cell level (one row per participant $\times$ noun
 condition $\times$ voice; $N = 890$ rows after listwise exclusion of
-missing WR cells). The reference levels were LL (noun condition) and
+6 participant-by-cell rows with zero WR trials following block-level
+failures, reducing from 896). The reference levels were LL (noun condition) and
 Active (voice). Models were selected via backward AIC stepwise
 elimination from a full main-effects and interaction model. Because
 Breusch-Pagan tests indicated heteroscedasticity in both outcomes
@@ -896,14 +918,16 @@ noun condition effect holds independently in every block:
     \textbf{Block} & $\boldsymbol{\chi^2(3)}$ & $\boldsymbol{p}$ &
     \textbf{Kendall's $W$} & \textbf{Significant?} \\
     \midrule
-    Block 1 & 29.0 & $< .001$ & 0.092 & Yes \\
-    Block 2 & 8.06 & .045     & 0.026 & Yes \\
-    Block 3 & 11.0 & .012     & 0.035 & Yes \\
+    Block 1 & 29.0 & $< .001$ & 0.092 & Yes ($p < \alpha_{\text{FW}}$) \\
+    Block 2 & 8.06 & .045     & 0.026 & No ($p > \alpha_{\text{FW}} = .017$)$^*$ \\
+    Block 3 & 11.0 & .012     & 0.035 & Yes ($p < \alpha_{\text{FW}}$) \\
     \bottomrule
   \end{tabular}
   \caption{Per-block Friedman omnibus tests for noun condition effect
   on Corrected IR ($N = 105$ participants with complete data across
-  all three blocks).}
+  all three blocks). $^*$Block~2 does not reach the family-wise
+  threshold $\alpha_{\text{FW}} = .017$; it is retained as exploratory
+  confirmation that a weak ordering persists in the middle block.}
   \label{tab:block_omnibus}
 \end{table}
 
@@ -1044,15 +1068,37 @@ access.
 \subsection*{Team Contributions}
 
 \begin{itemize}[noitemsep]
-  \item \textbf{Shreyas Deb:} End-to-end R data pipeline (preprocessing,
-  validation, score computation, visualisations).
-  \item \textbf{Yajat Lakhanpal:} Inferential statistical analysis
-  framework (Friedman omnibus, Holm-corrected Wilcoxon, SRH interaction
-  tests, GLM with robust SEs, SDT decomposition, block learning analysis).
-  \item \textbf{Prasoon Dev:} Literature review, theoretical framing,
-  synthesis of \citet{bregman1968}, \citet{begg1971}, and
-  \citet{james1973}, and mapping findings to reconstructive memory
-  models.
+  \item \textbf{Shreyas Deb:} Designed and implemented the end-to-end R
+  data pipeline, including log file ingestion, event-row parsing,
+  vigilance validation, FA rate correction (identifying and fixing the
+  \texttt{Sentence shown} vs.\ \texttt{IR pressed} row-filter bug),
+  Corrected IR and WR score computation, and generation of all
+  visualisations. Shreyas also conducted the block-level learning
+  analysis --- including the Friedman block main effect, per-block
+  omnibus tests, Scheirer-Ray-Hare condition $\times$ block interaction
+  test, and Holm-corrected post-hoc comparisons across blocks --- and
+  compiled the final \LaTeX{} document for both reports.
+
+  \item \textbf{Yajat Lakhanpal:} Led the entire GLM analysis pipeline,
+  including cell-level dataset construction, backward AIC model
+  selection, Breusch-Pagan heteroscedasticity testing, application of
+  HC3 robust standard errors, Wald $F$-tests for the interaction, and
+  Bayesian model comparisons (BF$_{10}$) for both Corrected IR and WR
+  Accuracy. Yajat also ran the core non-parametric inferential framework:
+  Friedman omnibus tests, Holm-corrected post-hoc paired Wilcoxon
+  signed-rank tests, Scheirer-Ray-Hare interaction tests, and effect
+  size computation (Kendall's $W$, rank-biserial $r$).
+
+  \item \textbf{Prasoon Dev:} Led the literature review and theoretical
+  framing, synthesising the foundational work of \citet{bregman1968},
+  \citet{begg1971}, and \citet{james1973} to define the core research
+  hypotheses. Prasoon also conducted the Signal Detection Theory (SDT)
+  analysis --- including the RM-ANOVA on $d'$, Friedman's test on $A'$,
+  criterion $c$ interpretation, convergent validity analysis
+  ($\rho(d', \text{Corrected IR})$) --- and wrote the Discussion,
+  Theoretical Implications, Limitations, and Future Directions sections,
+  mapping all empirical findings back to the reconstructive memory
+  framework.
 \end{itemize}
 
 % ============================================================
