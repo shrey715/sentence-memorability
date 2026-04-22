@@ -111,7 +111,6 @@ run_friedman <- function(metric_col, label) {
     .log(
         "\n================================================================",
         sprintf("FRIEDMAN'S TEST: %s ~ noun_condition", label),
-        "(Within-participants design: Friedman, not Kruskal-Wallis)",
         "================================================================"
     )
 
@@ -137,8 +136,7 @@ run_friedman <- function(metric_col, label) {
     if (res$p.value < FAMILYWISE_ALPHA) {
         .log(
             sprintf("\n  Omnibus significant at family-wise alpha = %.4f", FAMILYWISE_ALPHA),
-            "  --- Post-hoc: Paired Wilcoxon Signed-Rank (Holm-corrected) ---",
-            "  NOTE: paired = TRUE — same participants across all 4 conditions."
+            "  --- Post-hoc: Paired Wilcoxon Signed-Rank (Holm-corrected) ---"
         )
 
         # F3: paired = TRUE (key correction from original)
@@ -224,9 +222,6 @@ run_srh <- function(metric_col, label) {
     .log(
         "\n================================================================",
         sprintf("SCHEIRER-RAY-HARE: %s ~ noun_condition * voice", label),
-        "(2-way non-parametric; limitation: designed for independent groups)",
-        "Note: SRH was designed for independent groups. Used here as a 2-way",
-        "approximation; sensitivity Friedman per voice level follows.",
         "================================================================"
     )
     srh <- scheirerRayHare(

@@ -231,11 +231,8 @@ cat("\n    Descriptive statistics:\n")
 print(as.data.frame(desc_table), row.names = FALSE)
 
 # Shapiro-Wilk Normality (per-group, not pooled) ───────────────────────
-# "if you have groups of data, you MUST test each group for normality."
-# Fix: group_by(noun_condition, metric) produces 4 conditions x 3 metrics = 12 tests.
-# Transformation branch skipped: IR CR and WR Accuracy are bounded proportions
-# (~[-0.5, 1.0]); IR RT has heavy tails. These are structurally non-normal and
-# neither sqrt nor log10 reliably rescues normality for bounded data.
+# Shapiro-Wilk Normality — per condition group (4 conditions x 3 metrics = 12 tests).
+# IR CR and WR Accuracy are bounded proportions; IR RT has heavy tails.
 # Non-parametric tests (Friedman's) are used throughout.
 cat("\n  Shapiro-Wilk normality tests (per condition group)...\n")
 shapiro_results <- cr_scores %>%
