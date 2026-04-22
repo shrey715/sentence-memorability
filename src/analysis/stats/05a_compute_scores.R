@@ -24,6 +24,11 @@ cat(sprintf(
 ))
 
 # ── 1. Global IR False Alarm Rates ──────────────────────────────────────────
+# A false alarm = participant pressed IR on an HF first-showing (a lure).
+# Denominator: number of HF first-showing display events per participant.
+# Numerator:   number of 'IR pressed' events on those same trials.
+# NOTE: ir_accuracy is NA on 'Sentence shown' rows (display events); counting
+# it there always yields 0. FA counts must come from 'IR pressed' rows.
 cat("\n  [1/5] Computing IR false alarm rates from HF first-showings...\n")
 hf_first_shown <- df %>%
     filter(
@@ -35,20 +40,16 @@ hf_first_shown <- df %>%
 
 ir_fa_counts <- df %>%
     filter(
-        event_type == "Sentence shown",
+        event_type    == "IR pressed",   # response rows — where the press is recorded
         noun_condition == "HF",
-        is.na(is_probe_repeat)
+        is.na(is_probe_repeat)           # first showing, not a repeat probe
     ) %>%
-    group_by(participant_id) %>%
-    summarise(
-        n_ir_fa = sum(ir_accuracy == 0, na.rm = TRUE),
-        .groups = "drop"
-    )
+    count(participant_id, name = "n_ir_fa")
 
 fa_rates <- hf_first_shown %>%
     left_join(ir_fa_counts, by = "participant_id") %>%
     mutate(
-        n_ir_fa = replace_na(n_ir_fa, 0),
+        n_ir_fa    = replace_na(n_ir_fa, 0),
         ir_fa_rate = n_ir_fa / n_hf_first
     ) %>%
     select(participant_id, ir_fa_rate)

@@ -1,31 +1,31 @@
 # GLM Deliverables
 
-Generated: 2026-04-22 04:50:11
+Generated: 2026-04-23 01:05:14
 
 ## Data aggregation
 One row per participant x noun_condition x voice cell was used from data/processed/glm_cell_data.csv,
 including mean Corrected IR, mean WR Accuracy, mean RT, and mean trial position.
 Reference levels: noun_condition = LL, voice = Active.
 
-## H_GLM1 and H_GLM2 (Corrected IR)
+## H1 and H2 (Corrected IR)
 Best model selected (AIC/backward step): corrected_ir ~ noun_condition + mean_rt
 Sample size used: 890 rows
 Overall model fit: F(4, 885)=6.0074, p=9.02333e-05, R2=0.0264, Adj R2=0.0220
-Full model BF10 (main effects vs null): BF10 = 0.8699 [BF01 = 1.15] (negligible evidence for H0)
+Full model BF10 (main effects vs null): BF10 = 0.8603 [BF01 = 1.162] (negligible evidence for H0)
 Robust Wald sequence (HC3) saved in outputs/glm/corrected_ir_robust_wald_sequence.csv; delta AIC in outputs/glm/corrected_ir_model_aic.csv.
 
-## H_GLM3 (WR Accuracy null-focused)
+## H3 (WR Accuracy null-focused)
 Best model selected (AIC/backward step): wr_accuracy ~ voice + mean_trial_position
 Sample size used: 890 rows
 Overall model fit: F(2, 887)=4.2423, p=0.0146665, R2=0.0095, Adj R2=0.0072
 Block BF comparisons (noun_condition as factor) are in outputs/glm/wr_accuracy_bayesfactor_models.csv.
-WR main-effects BF10 (vs null): BF10 = 0.0009353 [BF01 = 1069] (very strong evidence for H0)
+WR main-effects BF10 (vs null): BF10 = 0.001007 [BF01 = 992.7] (very strong evidence for H0)
 
-## H_GLM4 (Interaction)
+## H4 (Interaction)
 Corrected IR interaction M3 vs M4 (robust Wald HC3): F(3,880)=0.1824, p=0.908345
-Corrected IR BF(interact/main): BF10 = 0.01125 [BF01 = 88.87] (strong evidence for H0)
+Corrected IR BF(interact/main): BF10 = 0.01115 [BF01 = 89.66] (strong evidence for H0)
 WR Accuracy interaction M3 vs M4 (robust Wald HC3): F(3,880)=0.8799, p=0.450981
-WR Accuracy BF(interact/main): BF10 = 0.03024 [BF01 = 33.07] (strong evidence for H0)
+WR Accuracy BF(interact/main): BF10 = 0.02724 [BF01 = 36.7] (strong evidence for H0)
 
 ## Diagnostics
 Corrected IR residual Shapiro-Wilk p=3.58783e-25

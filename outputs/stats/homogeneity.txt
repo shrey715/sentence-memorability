@@ -1,12 +1,12 @@
 === Fligner-Killeen Test: Homogeneity of Variance ===
-(Non-parametric equivalent of Levene's; class 14.pdf flowchart step)
+(Non-parametric equivalent of Levene's)
 
 IR Corrected Rate:
 
 	Fligner-Killeen test of homogeneity of variances
 
 data:  ir_cr by noun_condition
-Fligner-Killeen:med chi-squared = 3.7589, df = 3, p-value = 0.2887
+Fligner-Killeen:med chi-squared = 4.0452, df = 3, p-value = 0.2566
 
 
 WR Accuracy:
