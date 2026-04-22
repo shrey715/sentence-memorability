@@ -2,9 +2,9 @@
 # Signal Detection Theory inferential analysis.
 #
 # UPDATE: d' and c are normally distributed (all S-W p > .05 per condition group).
-# Class 14.pdf flowchart: normality holds → use parametric RM-ANOVA, not Friedman's.
+# Normality holds per condition group → use parametric RM-ANOVA.
 # Mauchly's sphericity tested; Greenhouse-Geisser correction applied if violated.
-# Post-hoc: paired t-tests with Holm correction (not Wilcoxon signed-rank).
+# Post-hoc: paired t-tests with Holm correction.
 #
 # A' remains Friedman's (bounded [0.5,1], non-Gaussian by construction → robustness check).
 # Voice comparisons (H3): 2-level paired t-test (replaces paired Wilcoxon).
@@ -65,10 +65,10 @@ desc <- sdt %>%
             .groups  = "drop")
 print(as.data.frame(desc), row.names = FALSE)
 
-# ── Normality (per condition group — class 7.pdf) ─────────────────────────────
+# ── Normality (per condition group) ─────────────────────────────
 cat("\n================================================================\n")
 cat("NORMALITY — Shapiro-Wilk per Condition Group\n")
-cat("(Class 7.pdf: test each group separately)\n")
+cat("(Test each group separately)\n")
 cat("================================================================\n")
 
 norm_d <- sdt %>% group_by(noun_condition) %>%
@@ -87,7 +87,7 @@ all_normal_d <- all(norm_d$p >= 0.05)
 all_normal_c <- all(norm_c$p >= 0.05)
 cat(sprintf("\n  All d' groups normal: %s\n", all_normal_d))
 cat(sprintf("  All c  groups normal: %s\n", all_normal_c))
-cat("  => Class 14.pdf flowchart: normality holds → parametric RM-ANOVA used.\n")
+cat("  => Normality holds → parametric RM-ANOVA used.\n")
 cat("  => Friedman's NOT used for d' and c (would discard information).\n")
 cat("  => A' still uses Friedman's (bounded [0.5,1] — non-parametric by design).\n")
 
@@ -96,7 +96,7 @@ run_rmanova <- function(metric_col, label) {
 
   cat(sprintf("\n================================================================\n"))
   cat(sprintf("RM-ANOVA: %s ~ noun_condition\n", label))
-  cat("(Normality confirmed; within-participants design; class 14.pdf)\n")
+  cat("(Normality confirmed; within-participants design)\n")
   cat("================================================================\n")
 
   # ezANOVA gives F, p, GES (generalized eta squared), Mauchly's W, and GG correction

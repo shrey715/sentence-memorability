@@ -159,10 +159,9 @@ run_outcome <- function(data_df, outcome, outcome_label) {
   M3 <- lm(as.formula(sprintf("%s ~ noun_condition + voice + mean_rt + mean_trial_position", outcome)), data = model_df)
   M4 <- lm(as.formula(sprintf("%s ~ noun_condition * voice + mean_rt + mean_trial_position", outcome)), data = model_df)
 
-  # Robust sequential Wald tests (HC3) — replaces plain anova() F-tests which
-  # are invalid under confirmed heteroscedasticity (Breusch-Pagan p < .05).
-  # waldtest() with vcovHC produces chi-squared / F statistics adjusted for
-  # non-constant variance, giving valid p-values for H_GLM1 and H_GLM2.
+  # Robust sequential Wald tests (HC3) — accounts for detected heteroscedasticity.
+  # waldtest() with vcovHC produces statistics adjusted for non-constant variance,
+  # giving valid p-values for H_GLM1 and H_GLM2.
   wt_01 <- waldtest(M0, M1, vcov = vcovHC(M1, type = "HC3"))
   wt_12 <- waldtest(M1, M2, vcov = vcovHC(M2, type = "HC3"))
   wt_23 <- waldtest(M2, M3, vcov = vcovHC(M3, type = "HC3"))
@@ -177,8 +176,7 @@ run_outcome <- function(data_df, outcome, outcome_label) {
   )
 
   # Non-robust AIC sequence retained for reference / delta-AIC inspection.
-  # Note: AIC is computed from OLS log-likelihood and is not HC3-adjusted;
-  # use the waldtest p-values above for formal inference.
+  # Note: AIC is computed from OLS log-likelihood; final inference uses HC3.
   aic_vals <- AIC(M0, M1, M2, M3, M4)
   aic_vals$delta_aic <- aic_vals$AIC - min(aic_vals$AIC)
 
@@ -240,9 +238,6 @@ run_outcome <- function(data_df, outcome, outcome_label) {
   fit_tab <- extract_model_fit(best_model)
   coef_tab <- extract_coef_table(best_model)
 
-  # Standardised coefficients: refit the best model after z-scoring the two continuous
-  # predictors inline.  The formula is rebuilt by substituting the original column names
-  # with their z-scored counterparts so that factor terms are left untouched.
   std_df <- model_df %>%
     mutate(
       mean_rt_z              = as.numeric(scale(mean_rt)),
@@ -256,9 +251,6 @@ run_outcome <- function(data_df, outcome, outcome_label) {
 
   bf_result <- extract_bf_table(model_df, outcome, prefix)
 
-  # Robust Wald test for H_GLM4 interaction contrast (M3 vs M4).
-  # This replaces the plain anova(M3, M4) F-test to maintain consistency
-  # with the HC3 framework used throughout.
   wt_m3_m4 <- waldtest(M3, M4, vcov = vcovHC(M4, type = "HC3"))
   anova_m3_m4 <- as.data.frame(wt_m3_m4)
 
@@ -300,7 +292,7 @@ run_outcome <- function(data_df, outcome, outcome_label) {
   )
 }
 
-# interpret_bf: Jeffreys scale matching the class (16.pdf slide 18).
+# interpret_bf: Evaluates evidence on Jeffreys scale.
 #   BF10 >= 1  => evidence for alternative; label on H1 side.
 #   BF10 <  1  => evidence for null; invert to BF01 = 1/BF10 and label on H0 side.
 interpret_bf <- function(x) {
@@ -318,9 +310,7 @@ interpret_bf <- function(x) {
   }
 }
 
-# format_bf: returns a single descriptive string suitable for the report.
-# When BF10 < 1, reports the reciprocal BF01 so the reader sees the null-supporting
-# magnitude explicitly, matching the class framing from 16.pdf slide 18.
+# format_bf: Generates a descriptive string including reciprocal BF01 if needed.
 format_bf <- function(x, label = "BF10") {
   interp <- interpret_bf(x)
   if (x >= 1) {
@@ -344,7 +334,7 @@ report_lines <- c(
   "including mean Corrected IR, mean WR Accuracy, mean RT, and mean trial position.",
   "Reference levels: noun_condition = LL, voice = Active.",
   "",
-  "## H_GLM1 and H_GLM2 (Corrected IR)",
+  "## H1 and H2 (Corrected IR)",
   sprintf("Best model selected (AIC/backward step): %s", ir_res$best_formula),
   sprintf("Sample size used: %d rows", ir_res$n),
   sprintf("Overall model fit: F(%d, %d)=%.4f, p=%.6g, R2=%.4f, Adj R2=%.4f",
@@ -354,7 +344,7 @@ report_lines <- c(
           format_bf(ir_res$bf_main_over_null, "BF10")),
   "Robust Wald sequence (HC3) saved in outputs/glm/corrected_ir_robust_wald_sequence.csv; delta AIC in outputs/glm/corrected_ir_model_aic.csv.",
   "",
-  "## H_GLM3 (WR Accuracy null-focused)",
+  "## H3 (WR Accuracy null-focused)",
   sprintf("Best model selected (AIC/backward step): %s", wr_res$best_formula),
   sprintf("Sample size used: %d rows", wr_res$n),
   sprintf("Overall model fit: F(%d, %d)=%.4f, p=%.6g, R2=%.4f, Adj R2=%.4f",
@@ -364,7 +354,7 @@ report_lines <- c(
   sprintf("WR main-effects BF10 (vs null): %s",
           format_bf(wr_res$bf_main_over_null, "BF10")),
   "",
-  "## H_GLM4 (Interaction)",
+  "## H4 (Interaction)",
   sprintf("Corrected IR interaction M3 vs M4 (robust Wald HC3): F(%d,%d)=%.4f, p=%.6g",
           ir_res$anova_m3_m4$Df[2], ir_res$anova_m3_m4$`Res.Df`[2],
           ir_res$anova_m3_m4$F[2], ir_res$anova_m3_m4$`Pr(>F)`[2]),

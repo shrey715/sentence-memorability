@@ -49,8 +49,7 @@ Five nested models were fitted for each outcome:
 
 Models were compared using nested F-tests (`anova()`) and AIC. Backward stepwise
 selection starting from M4 was used to identify the best model per outcome.
-Bayesian model comparison was conducted using `regressionBF()` (BayesFactor package),
-with all predictor combinations tested against an intercept-only denominator.
+Bayesian model comparison used `lmBF()` (BayesFactor package), comparing factor-block models (noun_condition as a 3-df block, voice as a 1-df block) against the intercept-only denominator.
 
 ### Diagnostics
 

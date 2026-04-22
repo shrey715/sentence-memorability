@@ -39,18 +39,26 @@ data/processed/
 ├── combined_data.csv   # Raw logs merged
 ├── cleaned_data.csv    # Practice removed, block_id assigned
 ├── pruned_data.csv     # Validation flags added
-└── final_data.csv      # Use this for analysis
+├── final_data.csv      # Unified participant-level dataset
+├── cr_scores.csv       # Cell-level scores (non-parametric input)
+├── glm_cell_data.csv   # Aggregated dataset (GLM input)
+└── descriptive_stats.csv
 
-src/preliminary/
-├── data.R              # Merge logs
-├── events.R            # Validate events, assign blocks
-├── flagging.R          # Apply validation formula
-└── final_cleaning.R    # Rename columns, drop failed blocks
+src/
+├── preprocessing/      # Raw log cleaning and validation
+├── analysis/           # Non-parametric pipeline (Friedman, SRH)
+├── glm/                # Multivariate modeling (HC3, BayesFactor)
+├── sdt/                # Signal Detection Theory analysis
+├── block_learning/     # Learning curve analysis across blocks
+└── main.R              # Execution entry point
 ```
 
-## Analysis File: `final_data.csv`
+Use these files for analysis. All rows have passed validation.
 
-Use this file only. All rows have passed validation.
+### Derived datasets
+- `final_data.csv`: Base trial-level dataset.
+- `cr_scores.csv`: Aggregated scores for non-parametric tests.
+- `glm_cell_data.csv`: Aggregated dataset with covariates for GLM.
 
 **Dimensions:** 72,627 rows × 15 columns | 112 participants | 329/342 blocks (96.2%)
 
@@ -101,6 +109,4 @@ Parse: `HH_155_A` = noun condition (HH/HL/LH/LL) + sentence number + voice (A=ac
 
 ---
 
-## Status
-
-Preliminary analysis only — 112 participants collected (334 required for full power).
+All planned analyses (non-parametric, GLM, SDT) are implemented. 112 participants collected (power consideration: 334 recommended for full discovery power, but current N sufficient for large effects).

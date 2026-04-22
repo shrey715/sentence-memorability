@@ -6,7 +6,7 @@
 #
 # ANALYSIS A — Main effect of Block (Friedman's, collapsed across condition)
 #   Does overall recognition discriminability improve with exposure?
-#   3-level within-participants design → Friedman's (class 14.pdf flowchart).
+#   3-level within-participants design → Friedman's.
 #   Post-hoc: paired Wilcoxon signed-rank (Holm-corrected) + rank-biserial r.
 #
 # ANALYSIS B — Scheirer-Ray-Hare: Noun Condition × Block interaction
@@ -50,14 +50,15 @@ cat(sprintf("  Rows         : %d  (%d per participant: 3 blocks × 4 conditions)
             nrow(bs), nrow(bs) / length(unique(bs$participant_id))))
 
 # ──────────────────────────────────────────────────────────────────────────────
-# FIX 1 — Normality: Shapiro-Wilk per condition group and per block
-# Class 14.pdf: normality must be checked separately per group being compared,
+# ──────────────────────────────────────────────────────────────────────────────
+# Normality: Shapiro-Wilk per condition group and per block
+# Normality must be checked separately per group being compared,
 # not once on the pooled distribution. We check corrected_ir (primary DV)
 # grouped by noun_condition (4 groups) and by block_id (3 groups).
 # If any group fails (p < .05) → non-parametric route is justified.
 # ──────────────────────────────────────────────────────────────────────────────
 cat("\n\n================================================================\n")
-cat("NORMALITY CHECK — Shapiro-Wilk per Group (class 14.pdf)\n")
+cat("NORMALITY CHECK — Shapiro-Wilk per Group\n")
 cat("(One test per group being compared; pooled tests are uninformative)\n")
 cat("================================================================\n")
 
@@ -97,13 +98,13 @@ n_nonnormal_block <- sum(norm_by_block$p_value < 0.05)
 cat(sprintf("  %d/%d block groups are non-normal\n",
             n_nonnormal_block, nrow(norm_by_block)))
 
-# FIX 6 — Sphericity acknowledgment
-cat("\n── Sphericity (class 14.pdf) ──\n")
+# Sphericity acknowledgment
+cat("\n── Sphericity ──\n")
 cat("  Mauchly's test of sphericity is not applicable here.\n")
 cat("  Because normality is violated in at least one group, Friedman's non-parametric\n")
 cat("  test was used throughout. Friedman's operates on ranks and does not assume\n")
 cat("  equal variances (sphericity) across conditions — the assumption is implicitly\n")
-cat("  bypassed by the rank transformation (class 14.pdf, repeated-measures section).\n")
+cat("  bypassed by the rank transformation.\n")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # ANALYSIS A: Main Effect of Block (Friedman's)
@@ -121,7 +122,7 @@ bs_by_block <- bs %>%
 cat("\n\n================================================================\n")
 cat("ANALYSIS A — Main Effect of Block (Friedman's)\n")
 cat("(Collapsed across noun condition; tests pure learning/fatigue)\n")
-cat("(3-level within-participants → Friedman's, class 14.pdf flowchart)\n")
+cat("(3-level within-participants → Friedman's)\n")
 cat("================================================================\n")
 
 run_block_friedman <- function(df, metric_col, label) {
@@ -167,12 +168,8 @@ cat("ANALYSIS B — Scheirer-Ray-Hare: Noun Condition × Block Interaction\n")
 cat("(2-way non-parametric; tests whether LL deficit changes over blocks)\n")
 cat("(Mirrors Condition × Voice SRH in 05b; uses rcompanion)\n")
 cat("================================================================\n")
-# FIX 7 — SRH within-participants limitation
-cat("  LIMITATION NOTE (Fix 7): The Scheirer-Ray-Hare test was developed for\n")
-cat("  mixed factorial (between-groups) or randomised-block designs. Both factors\n")
-cat("  here (noun condition and block) are within-participants. SRH is used as\n")
-cat("  the best available approximation consistent with class 14.pdf; H statistics\n")
-cat("  for the interaction term should be interpreted with appropriate caution.\n")
+cat("  Note: SRH was designed for independent groups. Used here as a 2-way\n")
+cat("  approximation; sensitivity Friedman per voice level follows.\n")
 
 run_srh_block <- function(metric_col, label) {
   cat(sprintf("\n── B. SRH: %s ~ noun_condition + block_id ──\n", label))

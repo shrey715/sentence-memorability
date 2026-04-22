@@ -147,7 +147,7 @@ print(summary(cr_scores$ir_cr))
 cat("\n    WR accuracy summary:\n")
 print(summary(cr_scores$wr_acc_score))
 
-# ── Outlier Detection (F11) ─────────────────────────────────────────────────
+# Outlier Detection ─────────────────────────────────────────────────
 # Detection only — no exclusions. Non-parametric tests are robust to outliers.
 # This block documents the range of values and flags any extremes.
 cat("\n  Outlier detection (detection only, no exclusions)...\n")
@@ -193,7 +193,7 @@ if (exists("stat_dir")) {
     cat(sprintf("  Saved -> %s/outlier_check.txt\n", stat_dir))
 }
 
-# ── Descriptive Statistics (F8: bootstrap 95% CIs added) ────────────────────
+# Descriptive Statistics (bootstrap 95% CIs added) ────────────────────
 set.seed(42)  # reproducibility for bootstrap
 cat("\n  Computing per-condition descriptive statistics...\n")
 desc_table <- cr_scores %>%
@@ -230,13 +230,13 @@ desc_table <- cr_scores %>%
 cat("\n    Descriptive statistics:\n")
 print(as.data.frame(desc_table), row.names = FALSE)
 
-# ── Shapiro-Wilk Normality (F1: per-group, not pooled) ───────────────────────
-# Class 7.pdf: "if you have groups of data, you MUST test each group for normality."
+# Shapiro-Wilk Normality (per-group, not pooled) ───────────────────────
+# "if you have groups of data, you MUST test each group for normality."
 # Fix: group_by(noun_condition, metric) produces 4 conditions x 3 metrics = 12 tests.
 # Transformation branch skipped: IR CR and WR Accuracy are bounded proportions
 # (~[-0.5, 1.0]); IR RT has heavy tails. These are structurally non-normal and
 # neither sqrt nor log10 reliably rescues normality for bounded data.
-# Non-parametric tests (Friedman's) are used throughout per class 14.pdf flowchart.
+# Non-parametric tests (Friedman's) are used throughout.
 cat("\n  Shapiro-Wilk normality tests (per condition group)...\n")
 shapiro_results <- cr_scores %>%
     filter(noun_condition %in% c("HH", "HL", "LH", "LL")) %>%
@@ -244,7 +244,7 @@ shapiro_results <- cr_scores %>%
         cols = c(ir_cr, wr_acc_score, ir_rt),
         names_to = "metric", values_to = "value"
     ) %>%
-    group_by(noun_condition, metric) %>%          # F1: added noun_condition
+    group_by(noun_condition, metric) %>%          # added noun_condition
     summarise(
         n = sum(!is.na(value)),
         W = {

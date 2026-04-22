@@ -1,27 +1,6 @@
 # 05b_statistical_tests.R
-# Non-parametric inferential statistics for the sentence memorability study.
-#
-# CORRECTIONS applied in this version (vs. original):
-#   F2  — Kruskal-Wallis replaced by Friedman's test (correct for within-participants)
-#   F3  — Post-hoc Wilcoxon now uses paired = TRUE (signed-rank, not rank-sum)
-#   F4  — Rank-biserial r added for every post-hoc Wilcoxon pair
-#   F5  — Scheirer-Ray-Hare gains η²_H; sensitivity Friedman per voice added
-#   F6  — Voice paired Wilcoxon gains rank-biserial r (collapsed across conditions)
-#   F6b — Group-wise voice Wilcoxon: Active vs Passive within each noun condition
-#   F7  — One-sample Wilcoxon gains rank-biserial r
-#   F9  — Fligner-Killeen homogeneity of variance check added
-#   F10 — SRH cell-balance verification added
-#   F12 — Family-wise α across three omnibus tests documented explicitly
-#
-# Tests run:
-#   [F9]  Fligner-Killeen homogeneity of variance (all 3 metrics)
-#   [F2]  Friedman's test: metric ~ noun_condition | participant_id (x3)
-#   [F3/4] Post-hoc paired Wilcoxon signed-rank + rank-biserial r (Holm-corrected)
-#   [F5]  Scheirer-Ray-Hare: metric ~ noun_condition + voice (x2) + η²_H
-#   [F5]  Sensitivity: Friedman per voice level (x2 metrics x 2 voices)
-#   [F6]  Paired Wilcoxon: Active vs Passive (collapsed) + r
-#   [F6b] Paired Wilcoxon: Active vs Passive within each noun condition
-#   [F7]  One-sample Wilcoxon: WR vs chance (0.5) + r
+# Non-parametric inferential statistics: Friedman omnibus, paired post-hoc,
+# Scheirer-Ray-Hare interaction, voice effects, and WR vs chance.
 #
 # Inputs:  data/processed/cr_scores.csv
 # Outputs: outputs/stats/statistical_tests.txt
@@ -56,12 +35,10 @@ cat(sprintf(
     cat(paste(lines, collapse = "\n"), "\n")
 }
 
-# ── F9: Homogeneity of Variance — Fligner-Killeen ───────────────────────────
-# Fligner-Killeen is the non-parametric equivalent of Levene's test.
-# Appropriate here because data is non-normal (Levene's assumes normal residuals).
-# Class 14.pdf: homogeneity check is part of the decision flowchart.
-# Note: Friedman's test is used regardless — this is for documentation.
-cat("\n  --- Homogeneity of Variance: Fligner-Killeen (F9) ---\n")
+# ── Homogeneity of Variance — Fligner-Killeen ───────────────────────────
+# Fligner-Killeen: non-parametric variance homogeneity check. Used for documentation; 
+# Friedman's is robust to heterogeneity.
+cat("\n  --- Homogeneity of Variance: Fligner-Killeen ---\n")
 
 fk_ir <- fligner.test(ir_cr        ~ noun_condition, data = cr_scores)
 fk_wr <- fligner.test(wr_acc_score ~ noun_condition, data = cr_scores)
@@ -69,7 +46,7 @@ fk_rt <- fligner.test(ir_rt        ~ noun_condition, data = cr_scores)
 
 fk_lines <- c(
     "=== Fligner-Killeen Test: Homogeneity of Variance ===",
-    "(Non-parametric equivalent of Levene's; class 14.pdf flowchart step)",
+    "(Non-parametric equivalent of Levene's)",
     "",
     "IR Corrected Rate:",
     capture.output(print(fk_ir)),
@@ -90,14 +67,13 @@ if (exists("stat_dir")) {
     cat(sprintf("  Saved -> %s/homogeneity.txt\n", stat_dir))
 }
 
-# ── F12: Family-Wise α — Three Omnibus Tests ────────────────────────────────
-# Class 14.pdf + 10.pdf: when running multiple omnibus tests on the same dataset,
-# adjust the family-wise α. Three Friedman tests → Bonferroni α = 0.05 / 3.
+# ── Family-Wise α — Three Omnibus Tests ────────────────────────────────
+# Three Friedman tests run on the same dataset → Bonferroni family-wise alpha = 0.05 / 3.
 # Within each significant omnibus, Holm correction is applied to post-hoc pairs.
 FAMILYWISE_ALPHA <- 0.05 / 3   # = 0.01667
 .log(
     "\n================================================================",
-    "FAMILY-WISE α NOTE (class 14.pdf + 10.pdf)",
+    "FAMILY-WISE α NOTE",
     "================================================================",
     "Three omnibus Friedman tests run on the same dataset:",
     "  (1) IR Corrected Rate, (2) WR Accuracy, (3) IR Reaction Time",
@@ -107,11 +83,8 @@ FAMILYWISE_ALPHA <- 0.05 / 3   # = 0.01667
 )
 
 # ── Aggregate to one row per participant × condition (for Friedman omnibus) ──
-# Friedman's test requires an "unreplicated complete block design":
-# exactly one observation per participant (block) × condition (group).
-# Since cr_scores has 2 rows per participant × condition (Active + Passive),
-# we collapse across voice by taking the mean. Voice effects are tested
-# separately with paired Wilcoxon (F6) and group-wise tests (F6b).
+# Friedman requires one value per participant × condition, so collapse voice 
+# by taking the mean. Voice effects are tested separately (below).
 cr_collapsed <- cr_scores %>%
     group_by(participant_id, noun_condition) %>%
     summarise(
@@ -130,20 +103,15 @@ cat(sprintf(
     nlevels(cr_collapsed$noun_condition)
 ))
 
-# ── F2/F3/F4: Friedman's Test + Paired Post-hoc + Rank-biserial r ───────────
-# F2: Friedman's is the correct non-parametric test for within-participants,
-#     repeated-measures designs (class 14.pdf flowchart — replaces KW).
-#     KW assumes independent groups; all participants appear in all 4 conditions.
-# F3: Post-hoc uses paired Wilcoxon signed-rank (not rank-sum).
-# F4: Rank-biserial r reported for each post-hoc pair (class 12.pdf).
+# ── Friedman's Test + Paired Post-hoc + Rank-biserial r ───────────
+# Friedman's test + paired post-hoc + rank-biserial r per condition.
 
 run_friedman <- function(metric_col, label) {
 
     .log(
         "\n================================================================",
         sprintf("FRIEDMAN'S TEST: %s ~ noun_condition", label),
-        "(Replaces Kruskal-Wallis: within-participants design, class 14.pdf)",
-        "(Input: per-participant means collapsed across voice levels)",
+        "(Within-participants design: Friedman, not Kruskal-Wallis)",
         "================================================================"
     )
 
@@ -170,8 +138,7 @@ run_friedman <- function(metric_col, label) {
         .log(
             sprintf("\n  Omnibus significant at family-wise alpha = %.4f", FAMILYWISE_ALPHA),
             "  --- Post-hoc: Paired Wilcoxon Signed-Rank (Holm-corrected) ---",
-            "  NOTE: paired = TRUE — same participants across all 4 conditions.",
-            "  (Class 14.pdf: within-participants -> signed-rank, not rank-sum.)"
+            "  NOTE: paired = TRUE — same participants across all 4 conditions."
         )
 
         # F3: paired = TRUE (key correction from original)
@@ -184,14 +151,14 @@ run_friedman <- function(metric_col, label) {
         .stat_lines <<- c(.stat_lines, capture.output(print(ph)))
         print(ph)
 
-        # State Holm-corrected alpha threshold explicitly (class 14.pdf)
+        # State the most conservative Holm threshold explicitly.
         n_pairs <- choose(k, 2)   # = 6 for 4 conditions C(4,2)
         .log(sprintf(
             "  Holm-corrected alpha (most conservative threshold): %.4f",
             0.05 / n_pairs
         ))
 
-        # F4: rank-biserial r per pair (class 12.pdf)
+        # Effect size per pair.
         .log("  Rank-biserial r (effect size per pair):")
         tryCatch({
             ph_r <- cr_collapsed %>%
@@ -214,7 +181,7 @@ run_friedman <- function(metric_col, label) {
 }
 
 .log(
-    "\n  --- Sphericity (class 14.pdf) ---",
+    "\n  --- Sphericity ---",
     "  Mauchly's test of sphericity is not applicable here as the analysis used",
     "  Friedman's non-parametric test, which operates on ranks and does not assume",
     "  equal variances across conditions."
@@ -225,16 +192,16 @@ run_friedman("ir_cr",        "Corrected IR")
 run_friedman("wr_acc_score", "WR Accuracy")
 run_friedman("ir_rt",        "IR Reaction Time")
 
-# ── F10: SRH Cell-Balance Check ─────────────────────────────────────────────
+# ── SRH Cell-Balance Check ─────────────────────────────────────────────
 # Scheirer-Ray-Hare requires balanced cell sizes. Verify at participant level.
-cat("\n  --- Cell-Size Balance Check for SRH (F10) ---\n")
+cat("\n  --- Cell-Size Balance Check for SRH ---\n")
 cell_counts <- cr_scores %>%
     count(noun_condition, voice) %>%
     arrange(noun_condition, voice)
 
 .log(
     "\n================================================================",
-    "CELL-SIZE BALANCE CHECK (required for valid SRH, F10)",
+    "CELL-SIZE BALANCE CHECK (required for valid SRH)",
     "================================================================"
 )
 .stat_lines <<- c(.stat_lines, capture.output(print(as.data.frame(cell_counts), row.names = FALSE)))
@@ -247,20 +214,19 @@ if (var(cell_counts$n) > 0) {
     .log("  Cells balanced. SRH assumption met.")
 }
 
-# ── F5: Scheirer-Ray-Hare + η²_H + Sensitivity Friedman per Voice ───────────
-# SRH is the class-taught 2-way non-parametric test (class 14.pdf).
-# Limitation noted: SRH was designed for independent groups; used here as
-# the primary interaction test per class material, with sensitivity checks below.
-cat("\n  --- Interaction Tests: Scheirer-Ray-Hare + Sensitivity Friedman (F5) ---\n")
+# ── Scheirer-Ray-Hare + η²_H + Sensitivity Friedman per Voice ───────────
+# SRH: 2-way non-parametric test for noun_condition × voice.
+# Note: SRH was designed for independent groups. Used here as a 2-way 
+# approximation; sensitivity Friedman per voice level follows.
+cat("\n  --- Interaction Tests: Scheirer-Ray-Hare + Sensitivity Friedman ---\n")
 
 run_srh <- function(metric_col, label) {
     .log(
         "\n================================================================",
         sprintf("SCHEIRER-RAY-HARE: %s ~ noun_condition * voice", label),
-        "(2-way non-parametric, class 14.pdf; limitation: designed for indep. groups)",
-        "LIMITATION NOTE (Fix 7): The Scheirer-Ray-Hare test was developed for",
-        "mixed factorial designs; as both factors are within-participants here,",
-        "the H statistics should be interpreted with caution as an approximation.",
+        "(2-way non-parametric; limitation: designed for independent groups)",
+        "Note: SRH was designed for independent groups. Used here as a 2-way",
+        "approximation; sensitivity Friedman per voice level follows.",
         "================================================================"
     )
     srh <- scheirerRayHare(
@@ -270,7 +236,7 @@ run_srh <- function(metric_col, label) {
     .stat_lines <<- c(.stat_lines, capture.output(print(srh)))
     print(srh)
 
-    # F5: η²_H per term = (H - (k-1)) / (N - k)
+    # η²_H per term = (H - (k-1)) / (N - k)
     N_total <- nrow(cr_scores)
     k_cond <- nlevels(cr_scores$noun_condition)
     k_voice <- nlevels(cr_scores$voice)
@@ -287,7 +253,7 @@ run_srh <- function(metric_col, label) {
         "  (eta^2_H benchmarks: .01 small, .06 medium, .14 large)"
     )
 
-    # F5: Sensitivity — Friedman per voice level
+    # Sensitivity: Friedman per voice level
     .log(sprintf(
         "\n  Sensitivity check: Friedman per voice level (%s)", label
     ))
@@ -329,12 +295,9 @@ run_srh <- function(metric_col, label) {
 run_srh("ir_cr",        "Corrected IR")
 run_srh("wr_acc_score", "WR Accuracy")
 
-# ── F6: Voice Main Effect — Paired Wilcoxon + Rank-Biserial r ───────────────
-# Collapsed across noun conditions. paired = TRUE was already correct.
-# F6 adds the missing rank-biserial r effect size (class 12.pdf).
-# NOTE: These voice tests are treated as EXPLORATORY and are not included in the
-# omnibus family-wise alpha correction. Interpreted without strict FWER control.
-cat("\n  --- Voice Main Effect: Paired Wilcoxon (collapsed) (F6) [EXPLORATORY] ---\n")
+# ── Voice Main Effect — Paired Wilcoxon + Rank-Biserial r ───────────────
+# Voice effect collapsed across conditions. Treated as exploratory — no FWER correction.
+cat("\n  --- Voice Main Effect: Paired Wilcoxon (collapsed) [EXPLORATORY] ---\n")
 
 voice_agg <- cr_scores %>%
     group_by(participant_id, voice) %>%
@@ -395,15 +358,14 @@ r_wr_res <- wilcox_effsize(voice_wr_long, wr_acc ~ voice, paired = TRUE)
     sprintf("  rank-biserial r = %.4f", r_wr_res$effsize)
 )
 
-# ── F6b: Group-Wise Voice Tests — Per Noun Condition ────────────────────────
+# ── Group-Wise Voice Tests — Per Noun Condition ────────────────────────
 # Group-wise: test Active vs. Passive separately within each noun condition.
-# This characterises whether the voice effect is consistent across conditions,
-# complementing the SRH interaction test. Uses paired Wilcoxon signed-rank.
-cat("\n  --- Group-Wise Voice Effect: Per Noun Condition (F6b) [EXPLORATORY] ---\n")
+# characterises whether voice effect is consistent across conditions.
+cat("\n  --- Group-Wise Voice Effect: Per Noun Condition [EXPLORATORY] ---\n")
 
 .log(
     "\n================================================================",
-    "GROUP-WISE VOICE TEST (F6b): Active vs Passive within each condition",
+    "GROUP-WISE VOICE TEST: Active vs Passive within each condition",
     "(Paired Wilcoxon signed-rank; same participants in both voice levels)",
     "================================================================"
 )
@@ -457,10 +419,9 @@ for (cond in levels(cr_scores$noun_condition)) {
     }
 }
 
-# ── F7: One-Sample Wilcoxon — WR vs Chance + Rank-Biserial r ────────────────
-# Already correct in original (one-sample signed-rank, mu = 0.5).
-# F7 adds the missing rank-biserial r (class 12.pdf).
-cat("\n  --- WR vs Chance: One-Sample Wilcoxon (F7) ---\n")
+# ── One-Sample Wilcoxon — WR vs Chance + Rank-Biserial r ────────────────
+# One-sample signed-rank vs chance (mu = 0.5). Reports rank-biserial r.
+cat("\n  --- WR vs Chance: One-Sample Wilcoxon ---\n")
 
 N_parts <- length(unique(cr_scores$participant_id))
 
