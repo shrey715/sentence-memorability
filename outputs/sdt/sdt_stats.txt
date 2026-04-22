@@ -1,7 +1,7 @@
 ================================================================
   SDT Analysis — Signal Detection Theory Extension
 ================================================================
-  Run : 2026-04-22 01:04:09
+  Run : 2026-04-23 01:07:21
 
   Participants : 112 | Rows : 448
 
@@ -16,7 +16,7 @@ DESCRIPTIVE STATISTICS — d', c, A' by Noun Condition
 
 ================================================================
 NORMALITY — Shapiro-Wilk per Condition Group
-(Class 7.pdf: test each group separately)
+(Test each group separately)
 ================================================================
 
 ── d' ──
@@ -35,7 +35,7 @@ NORMALITY — Shapiro-Wilk per Condition Group
 
   All d' groups normal: TRUE
   All c  groups normal: TRUE
-  => Class 14.pdf flowchart: normality holds → parametric RM-ANOVA used.
+  => Normality holds → parametric RM-ANOVA used.
   => Friedman's NOT used for d' and c (would discard information).
   => A' still uses Friedman's (bounded [0.5,1] — non-parametric by design).
 
@@ -45,7 +45,7 @@ SDT-H1: RM-ANOVA — d' ~ noun_condition
 
 ================================================================
 RM-ANOVA: d' (sensitivity) ~ noun_condition
-(Normality confirmed; within-participants design; class 14.pdf)
+(Normality confirmed; within-participants design)
 ================================================================
 
 ── Mauchly's Sphericity Test ──
@@ -86,7 +86,7 @@ SDT-H2: RM-ANOVA — c ~ noun_condition
 
 ================================================================
 RM-ANOVA: c (criterion) ~ noun_condition
-(Normality confirmed; within-participants design; class 14.pdf)
+(Normality confirmed; within-participants design)
 ================================================================
 
 ── Mauchly's Sphericity Test ──
@@ -205,15 +205,15 @@ SDT-H4: Convergent Validity — Spearman rho(d', Corrected IR)
 (rho > .80: Corrected IR adequate proxy; <.70: bias contamination)
 ================================================================
  noun_condition   rho   n
-             HH 0.778 112
-             HL 0.713 112
-             LH 0.745 112
-             LL 0.737 112
-  Overall rho = 0.758, S = 3626310, p = 0.0000
-  Interpretation: rho in [.70,.80) — moderate fidelity.
+             HH 0.981 112
+             HL 0.976 112
+             LH 0.977 112
+             LL 0.960 112
+  Overall rho = 0.977, S = 350771, p = 0.0000
+  Interpretation: rho >= .80 — Corrected IR is an adequate proxy for d'.
 
 
 ================================================================
-  SDT analysis complete : 2026-04-22 01:04:13
+  SDT analysis complete : 2026-04-23 01:07:27
   Saved -> outputs/sdt/sdt_stats.txt
 ================================================================

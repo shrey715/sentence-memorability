@@ -1,7 +1,7 @@
 ================================================================
   Block-Level Learning Analysis
 ================================================================
-  Run : 2026-04-21 23:20:51
+  Run : 2026-04-23 01:07:34
   Input : data/processed/block_scores.csv
 
   Participants : 105
@@ -9,7 +9,7 @@
 
 
 ================================================================
-NORMALITY CHECK — Shapiro-Wilk per Group (class 14.pdf)
+NORMALITY CHECK — Shapiro-Wilk per Group
 (One test per group being compared; pooled tests are uninformative)
 ================================================================
 
@@ -28,18 +28,18 @@ NORMALITY CHECK — Shapiro-Wilk per Group (class 14.pdf)
   Block 3 105 0.9476525 4.092199e-04 Non-normal (p < .05)
   2/3 block groups are non-normal
 
-── Sphericity (class 14.pdf) ──
+── Sphericity ──
   Mauchly's test of sphericity is not applicable here.
   Because normality is violated in at least one group, Friedman's non-parametric
   test was used throughout. Friedman's operates on ranks and does not assume
   equal variances (sphericity) across conditions — the assumption is implicitly
-  bypassed by the rank transformation (class 14.pdf, repeated-measures section).
+  bypassed by the rank transformation.
 
 
 ================================================================
 ANALYSIS A — Main Effect of Block (Friedman's)
 (Collapsed across noun condition; tests pure learning/fatigue)
-(3-level within-participants → Friedman's, class 14.pdf flowchart)
+(3-level within-participants → Friedman's)
 ================================================================
 
 ── A. Friedman's: Block effect on Corrected IR ──
@@ -99,11 +99,8 @@ ANALYSIS B — Scheirer-Ray-Hare: Noun Condition × Block Interaction
 (2-way non-parametric; tests whether LL deficit changes over blocks)
 (Mirrors Condition × Voice SRH in 05b; uses rcompanion)
 ================================================================
-  LIMITATION NOTE (Fix 7): The Scheirer-Ray-Hare test was developed for
-  mixed factorial (between-groups) or randomised-block designs. Both factors
-  here (noun condition and block) are within-participants. SRH is used as
-  the best available approximation consistent with class 14.pdf; H statistics
-  for the interaction term should be interpreted with appropriate caution.
+  Note: SRH was designed for independent groups. Used here as a 2-way
+  approximation; sensitivity Friedman per voice level follows.
 
 ── B. SRH: Corrected IR ~ noun_condition + block_id ──
   Cell balance check: OK (all cells equal)
@@ -246,6 +243,6 @@ ANALYSIS C — Per-Block Friedman: Noun Condition Effect within Each Block
 
 
 ================================================================
-  Analysis complete : 2026-04-21 23:20:56
+  Analysis complete : 2026-04-23 01:07:41
   Saved -> outputs/block_learning/block_stats.txt
 ================================================================
