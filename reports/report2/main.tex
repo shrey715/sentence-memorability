@@ -44,113 +44,82 @@
 \vspace{0.3em}
 
 % ============================================================
-\section{Introduction and Background}
+\section{Introduction}
 % ============================================================
 
-\subsection{Overview}
+\subsection{Sentence Memory: Gist vs.\ Wording}
 
 Human memory for language is not a faithful archive of words and syntax.
 A central finding in cognitive psychology is that listeners and readers
-retain the \emph{meaning} of sentences with much greater fidelity than
-their verbatim wording or grammatical structure. The present study
-addresses three tightly linked questions: What properties of nouns drive
-sentence encoding? Does grammatical form leave an independent trace? And
-when surface form is partially forgotten, on what basis is it reconstructed?
-
-% ------------------------------------------------------------
-\subsection{Background and Theoretical Motivation}
-
-Sentence memory can be divided into \textbf{verbatim memory} (exact
-wording and syntax) and \textbf{gist memory} (meaning). The
-\emph{kernel-plus-tag} hypothesis (Miller, 1962; Mehler, 1963) proposed
-that sentences are reduced to a semantic kernel with syntactic features
+retain the \emph{meaning} (gist) of sentences with much greater fidelity
+than their verbatim wording or grammatical structure. The
+\emph{kernel-plus-tag} hypothesis \citep{miller1962,mehler1963} proposed
+that sentences are encoded as a semantic kernel with syntactic features
 stored as forgettable tags. \citet{bregman1968} refuted this: when
 participants misidentified the syntactic form on a first guess, their
 second guesses exceeded chance ($\chi^2(4) = 20.8$, $p < .001$),
-indicating that grammatical form is reconstructed from imagery and noun
-salience rather than retrieved as a tag.
+suggesting that grammatical form is \emph{reconstructed} from imagery and
+noun salience rather than retrieved as a tag.
 
-\citet{begg1971} tested this dissociation directly via a \textbf{continuous
-recognition paradigm}. Meaning judgments declined sharply with lag
-($r = -.996$), while wording judgments were uncorrelated with lag
-($r = -.107$). Following Begg and Paivio (1969), this was interpreted as
-evidence that concrete sentence meaning is stored as a spatial image, while
-wording is reconstructed from the image trace at retrieval.
+\citet{begg1971} tested the gist--wording dissociation directly via a
+\textbf{continuous recognition paradigm}. Meaning judgments declined
+sharply with lag ($r = -.996$), while wording judgments were uncorrelated
+with lag ($r = -.107$), interpreted as evidence that concrete sentence
+meaning is stored as a spatial image and wording is reconstructed from
+that image trace at retrieval.
 
-If wording is reconstructed from an image, the imageability of constituent
-nouns is critical. \citet{james1973} tested this in free recall using four
-conditions: HH, HL, LH, LL. They documented a threshold-like recall pattern
-and a bias toward placing salient nouns in subject position during
-reconstruction, with passive-to-active transformation errors more frequent
-when the object noun was highly imageable (LH). Together, these studies
-establish that sentence memory is fundamentally semantic and imagistic.
+If wording is reconstructed from an imagistic trace, the imageability of
+constituent nouns becomes critical. \citet{james1973} tested this in free
+recall using four noun-imageability conditions (HH, HL, LH, LL) and
+documented a threshold-like recall pattern and a bias toward placing
+salient nouns in subject position during reconstruction.
 
 % ------------------------------------------------------------
-\subsection{Signal Detection Theory: Literature Background}
+\subsection{Signal Detection Theory Motivation}
 \label{sec:sdt_lit}
 
-A limitation of raw accuracy metrics (hit rate, corrected IR) is that
-they confound \emph{sensitivity} --- the fidelity of the memory trace ---
-with \emph{response criterion} --- the decision threshold a participant
-adopts. Signal Detection Theory (SDT), developed formally by
-\citet{green1966}, provides a principled decomposition.
-Under SDT, a recognition memory task is modelled as a decision between two
-overlapping Gaussian distributions: the noise distribution (lures) and the
-signal distribution (targets). A participant's memory report is determined
-jointly by trace strength and a freely-chosen criterion $c$.
-
-The sensitivity index $d'$ measures the standardised distance between
-signal and noise distributions: $d' = z(\text{HR}) - z(\text{FAR})$.
-The criterion $c = -0.5[z(\text{HR}) + z(\text{FAR})]$ captures liberal
-or conservative response bias. When $c > 0$, a participant requires
-stronger evidence before claiming recognition. Applied to the imageability
-manipulation, SDT allows us to distinguish whether LL sentences are poorly
-recognised because participants \emph{cannot} discriminate them from lures
-(reduced $d'$) or because they \emph{choose} a higher evidence threshold
-when uncertain (elevated $c$), or both.
-
-\citet{macmillan2005} established the methodological standards for SDT
-in recognition memory, including the log-linear correction for extreme
-hit and false alarm rates, and the non-parametric $A'$ index for
-robustness to the equal-variance Gaussian assumption. \citet{snodgrass1988}
-introduced the $A'$ formula applied here:
-\[
-  A' = 0.5 + \frac{(\text{HR} - \text{FAR})(1 + \text{HR} - \text{FAR})}
-                   {4 \cdot \text{HR} \cdot (1 - \text{FAR})}
-  \quad (\text{when HR} \geq \text{FAR})
-\]
-$A'$ is bounded in $[0.5, 1]$, requires no distributional assumptions, and
-serves as an independent check on $d'$ conclusions. Prior applications of
-SDT to sentence memory have been limited; this study is among the first to
-decompose imageability-driven recognition effects into sensitivity and bias
-components explicitly.
+In recognition-memory tasks, raw accuracy or corrected hit-minus-false-alarm
+scores can obscure an important distinction between two processes: how well
+participants discriminate old from new items, and how conservatively they
+choose to respond ``old.'' Signal Detection Theory (SDT;\,\citealt{green1966})
+addresses this by separating \textbf{sensitivity} ($d'$) from
+\textbf{response criterion} ($c$), and has long been the standard framework
+for recognition-memory research \citep{macmillan2005}. We therefore use SDT
+as a downstream analysis to test whether the observed noun-condition
+differences reflect a genuine change in discriminability ($d'$) or instead
+arise from shifts in response bias ($c$). The non-parametric index $A'$
+\citep{snodgrass1988} is included as a robustness measure that requires no
+Gaussian equal-variance assumption.
 
 % ------------------------------------------------------------
-\subsection{Research Hypotheses}
+\subsection{Core Question and Hypotheses}
+
+Recognition memory presents participants with an item and asks ``have
+you seen this before?'' (a discrimination judgment), whereas free recall
+requires generating studied items from scratch. Recognition is generally
+more sensitive to weak memory traces --- a property that is theoretically
+important here, as it may explain why a \emph{single} high-imageability
+noun suffices to anchor a recognition decision (threshold pattern) while
+free recall shows a more graded benefit \citep{james1973}.
+
+The present study extends \citet{james1973} from free recall to online
+continuous recognition, tests \citet{begg1971}'s prediction that
+imageability selectively affects gist but not wording, and uses SDT to
+decompose the imageability effect into sensitivity and criterion components.
 
 \begin{enumerate}[label=\textbf{H\arabic*:}]
   \item \textbf{(Gist):} Corrected IR differs across noun imageability
-  conditions (HH, HL, LH, LL).
+  conditions (HH, HL, LH, LL), with LL showing the largest deficit.
   \item \textbf{(Wording):} WR accuracy is not significantly affected by
-  noun imageability; participants can reconstruct voice from the imagistic trace.
+  noun imageability; voice is reconstructed from the imagistic trace.
   \item \textbf{(Voice):} Active-voice sentences will show different
   memorability and wording-recognition patterns compared to passive.
   \item \textbf{(No Interaction):} Voice does not moderate the noun
-  imageability effect on either Corrected IR or WR.
+  imageability effect on Corrected IR or WR.
 \end{enumerate}
 
-% ------------------------------------------------------------
-\subsection{Present Study in Context}
-
-This experiment extends \citet{james1973} from free recall to continuous
-recognition, tests \citet{begg1971}'s prediction that imageability selectively
-affects gist but not wording, and applies SDT to decompose the imageability
-effect into sensitivity and criterion components. Four analytic frameworks
-are used in parallel: non-parametric Friedman tests (primary); GLM with
-robust inference; SDT; and block-level learning analysis.
-
 % ============================================================
-\section{Methods}
+\section{Dataset and Experimental Design}
 % ============================================================
 
 \subsection{Participants}
@@ -186,16 +155,17 @@ estimation.
 \subsection{Stimuli}
 
 Simple SVO sentences were constructed by crossing noun imageability
-levels with voice. High- and low-imageability nouns were drawn from
-established word memorability norms; verbs were medium-concreteness
-action verbs. After fluency and coherence filters, 200 active-voice
-sentences (50 per condition) were selected and each converted to passive,
-yielding \textbf{400 target sentences} plus HF lure sentences.
+levels with voice. High- and low-imageability nouns were selected using
+the concreteness and imagery norms of \citet{paivio1968}; verbs were
+medium-concreteness action verbs. After fluency and coherence filters,
+200 active-voice sentences (50 per condition) were selected and each
+converted to passive, yielding \textbf{400 target sentences} plus HF
+lure sentences.
 
 \subsection{Procedure}
 
 Participants completed a continuous recognition task across
-\textbf{3 experimental blocks} (preceded by a practice block). Each
+\textbf{3 experimental blocks} preceded by a practice block. Each
 sentence was displayed for $\approx$4000~ms (ITI: 700--1300~ms). For
 each probe, participants made two sequential judgments:
 \begin{enumerate}[nosep]
@@ -204,16 +174,12 @@ each probe, participants made two sequential judgments:
   only when IR was pressed).
 \end{enumerate}
 
-\subsection{Preprocessing and Data Pipeline}
+\subsection{Validation and Exclusions}
 
-Raw event logs from 114 participants (81,329 rows) were processed in R.
-Events were cleaned, block boundaries identified from ``Rest Phase
-started'' markers, and per-trial accuracy variables extracted from
-\texttt{IR pressed} and \texttt{WR pressed} rows.
-
-\subsubsection{Vigilance Validation}
-
-Each block was retained only if:
+Raw event logs (81,329 rows) were processed in R. Block boundaries were
+identified from ``Rest Phase started'' markers; per-trial accuracy
+variables were extracted from \texttt{IR pressed} and \texttt{WR pressed}
+rows. Each block was retained only if:
 \[
   \text{Correct Validation IRs} >
   \tfrac{\text{Wrong Validation IRs}}{2} + \text{Missed Validation IRs}
@@ -223,91 +189,136 @@ removed entirely, leaving 48,281 observations. The design was balanced:
 each noun condition contributed 1,316 encoding trials; each voice
 condition 2,632 trials.
 
-\subsubsection{Practice Block Exclusion}
+\textbf{Practice block exclusion.} Practice blocks were excluded from all
+inferential analyses because they were designed only to familiarise
+participants with the response interface, not to measure stable
+sentence-memory performance. Including them would introduce variance due
+to interface acclimatisation (learning key assignments, calibrating
+response pacing) that is unrelated to noun imageability processing.
+The block-learning analysis tests changes across the three
+\emph{experimental} blocks; this question is only answerable cleanly
+if every observation reflects fully-familiarised participants responding
+to proper experimental stimuli.
 
-The practice block was excluded from all analyses, including the
-block-level learning analysis. Practice trials serve a single purpose:
-familiarising participants with the interface --- learning which keys to
-press, understanding the response sequence, and adapting to the timing
-of the display. The sentences themselves are not drawn from the
-experimental stimulus set and do not carry over into experimental blocks.
-Including practice data would introduce noise from the rate at which
-individual participants adapt to a novel test environment, a process
-that is irrelevant to the study's question of how noun imageability
-affects sentence memory. The block-level analysis tests whether the LL
-deficit changes across successive \emph{experimental} exposures
-(Blocks 1, 2, 3); this question is only answerable cleanly if every
-observation reflects fully-familiarised participants responding to proper
-experimental stimuli.
+% ============================================================
+\section{Methods}
+% ============================================================
 
-\subsubsection{False Alarm Rate Computation}
+\subsection{Scoring}
 
-False alarm counts were computed by filtering to \texttt{IR pressed}
-events on HF first-showing trials; the denominator was the number of
-HF first-showing display events per participant.
+False alarm counts were computed from \texttt{IR pressed} events on HF
+first-showing trials:
 \[
   \widehat{\text{FA rate}} = \frac{\text{IR presses on HF first-showings}}
                                   {\text{HF first-showing display events}}
   \quad (M = 0.160,\; SD = 0.104,\; \text{range: } 0.00\text{--}0.43)
 \]
 
-\subsection{Dependent Variables}
-
-\begin{enumerate}
+Three dependent variables were derived per participant per cell:
+\begin{enumerate}[nosep]
   \item \textbf{Corrected IR:} $\text{IR}_{CR} = \text{Hit Rate} - \text{FA Rate}$.
   \item \textbf{WR Accuracy:} Proportion of correct voice judgments,
   conditional on IR pressed.
   \item \textbf{IR Reaction Time (RT):} Mean RT on correct target probes.
 \end{enumerate}
 
-\subsection{Statistical Analysis Plan}
-
-\subsubsection{Normality Assessment and Test Selection}
+\subsection{Primary Non-Parametric Analysis}
 
 Shapiro-Wilk tests per condition group confirmed that Corrected IR and
 WR Accuracy are non-normal in all four groups ($p < .001$), expected
 given that these are bounded proportions computed from 3--6 trials per
 cell. Non-normality justifies \textbf{Friedman's test} as the omnibus
 statistic. Friedman's is the within-participants equivalent of
-Kruskal-Wallis: it blocks on participant identity (removing
-between-person variance), ranks observations within each participant,
-and tests for systematic rank differences across conditions --- all
-without distributional assumptions.
+Kruskal-Wallis: it blocks on participant identity, ranks observations
+within each participant, and tests for systematic rank differences across
+conditions without distributional assumptions.
 
-For SDT indices, $d'$ and $c$ are theoretically unbounded z-score
-transforms and passed normality per group ($p > .09$), justifying
-\textbf{repeated-measures ANOVA} for those specific indices. $A'$ is
-bounded in [0.5, 1] and uses Friedman's by design.
+Three omnibus Friedman tests (IR CR, WR Accuracy, IR RT) require a
+Bonferroni correction: $\alpha_{\text{FW}} = 0.05/3 = .0167$. Within
+significant omnibus tests, Holm-corrected paired Wilcoxon signed-rank
+post-hoc tests were conducted. Noun condition $\times$ voice interactions
+were evaluated with \textbf{Scheirer-Ray-Hare (SRH) tests} (the
+non-parametric two-way analogue of ANOVA; cell balance confirmed,
+$N = 112$ per cell). SRH was designed for independent groups; sensitivity
+Friedman tests per voice level follow as a robustness check.
 
-\subsubsection{Family-Wise Error Rate Control}
+\subsection{SDT Analysis}
 
-Three omnibus Friedman tests on the same dataset (IR CR, WR Accuracy,
-IR RT) inflate the family-wise error rate; a Bonferroni correction was
-applied: $\alpha_{\text{FW}} = 0.05/3 = .0167$. Within significant
-omnibus tests, Holm-corrected paired Wilcoxon signed-rank post-hoc
-tests were conducted. Holm's sequential procedure is uniformly more
-powerful than Bonferroni while controlling FWER.
+\textbf{Rationale.} The corrected IR score is useful as a bias-reduced
+behavioural summary but does not fully separate memory strength from
+response strategy. SDT provides that decomposition by estimating
+sensitivity ($d'$) and criterion ($c$) from hit and false-alarm rates
+\citep{stanislaw1999,macmillan2005}. This allows us to test whether the
+LL deficit reflects weaker memory evidence, a more conservative response
+threshold, or both.
 
-\subsubsection{Interaction Tests}
+SDT parameters were computed per participant per noun condition using
+log-linear correction (adding 0.5 to counts, 1 to denominators) to
+prevent infinite $z$-values \citep{macmillan2005}. The non-parametric
+$A'$ index \citep{snodgrass1988}:
+\[
+  A' = 0.5 + \frac{(\text{HR} - \text{FAR})(1 + \text{HR} - \text{FAR})}
+                   {4 \cdot \text{HR} \cdot (1 - \text{FAR})}
+  \quad (\text{when HR} \geq \text{FAR})
+\]
+is bounded in $[0.5,1]$ and requires no equal-variance assumption,
+serving as an independent check on $d'$ conclusions. Because $d'$ and $c$
+are theoretically unbounded $z$-score transforms and passed Shapiro-Wilk
+normality per group ($p > .09$), \textbf{repeated-measures ANOVA} was
+used for those indices (in contrast to the non-parametric Friedman tests
+applied to bounded proportions); $A'$ uses Friedman's. Convergent
+validity was checked via Spearman $\rho(d', \text{Corrected IR})$.
 
-Noun condition $\times$ voice interactions were evaluated with
-\textbf{Scheirer-Ray-Hare (SRH) tests} --- the non-parametric two-way
-analogue of ANOVA. Cell balance was confirmed ($N = 112$ per cell).
-SRH was designed for independent groups; its use here (within-participants)
-is an approximation; sensitivity Friedman tests per voice level follow
-as a robustness check.
+\textbf{Caveat:} All HF lures are active-voice; a global FA rate is
+therefore used for both voice conditions, which may marginally inflate
+$d'$ for passive sentences. Voice SDT comparisons are interpreted with
+this limitation in mind.
 
-\subsubsection{Extended Analyses}
+\subsection{GLM Analysis}
 
-(a)~\textbf{GLM}: Gaussian identity link, backward AIC selection from a
-full main-effects and interaction model, HC3 heteroscedasticity-robust
-standard errors (sandwich estimator), Bayesian model comparison via
-\texttt{lmBF()};
-(b)~\textbf{SDT}: RM-ANOVA on $d'$ and $c$ (normality confirmed),
-Friedman's on $A'$, convergent validity via Spearman $\rho(d',
-\text{Corrected IR})$;
-(c)~\textbf{Block Learning}: Friedman block main effect, per-block
-noun condition Friedman, SRH condition~$\times$~block interaction.
+GLMs were fit at cell level (one row per participant $\times$ noun
+condition $\times$ voice; $N = 890$ after listwise exclusion of 6 rows
+with no WR trials). Reference levels: noun condition = LL, voice =
+Active. Table~\ref{tab:glm_predictors} lists all predictors in the full
+model. Backward AIC stepwise elimination was applied, retaining only
+predictors that improved fit. Breusch-Pagan tests indicated
+heteroscedasticity for both outcomes (IR: $p = .040$; WR: $p = .002$);
+\textbf{HC3 robust standard errors} were applied throughout
+\citep{macmillan2005}. No Cook's $D$ exceeded 1. Bayesian model
+comparison used \texttt{lmBF()} from the \texttt{BayesFactor} package
+\citep{morey2022}.
+
+\begin{table}[htbp]
+  \centering\small
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{Predictor} & \textbf{Type} & \textbf{Rationale} \\
+    \midrule
+    \texttt{noun\_condition} & 4-level factor (ref: LL)
+      & Primary IV; tests H1 and H2 \\
+    \texttt{voice} & Binary (ref: Active)
+      & Tests H3; dropped by AIC for Corrected IR \\
+    \texttt{mean\_trial\_position} & Continuous (standardised)
+      & Controls within-session fatigue / learning \\
+    \texttt{mean\_rt} & Continuous (standardised)
+      & Controls individual processing speed differences \\
+    \texttt{noun\_condition $\times$ voice} & Interaction
+      & Tests H4 (moderation) \\
+    \bottomrule
+  \end{tabular}
+  \caption{Predictors in the full GLM. All continuous predictors were
+  standardised ($z$-scored) prior to model fitting.}
+  \label{tab:glm_predictors}
+\end{table}
+
+\subsection{Block-Learning Analysis}
+
+The block-learning analysis tests whether gist recognition improves
+across the three experimental blocks and whether the LL deficit is stable
+or attenuates with repeated exposure. Three tests were applied:
+(a)~Friedman's on block main effect (collapsed across noun condition);
+(b)~per-block Friedman on noun condition;
+(c)~SRH condition $\times$ block interaction.
 
 % ============================================================
 \section{Results}
@@ -346,15 +357,18 @@ $M = 0.160$ ($SD = 0.104$). All condition groups were non-normal
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.85\textwidth]{plots/01_ir_cr_by_condition.png}
-  \caption{Corrected IR across the four noun conditions (raincloud plot).
-  LL shows a visible deficit relative to HH, HL, and LH.}
+  \caption{Corrected IR across the four noun conditions (raincloud plot;
+  $N = 112$, collapsed across voice). The $y$-axis is Corrected IR
+  (Hit Rate $-$ FA Rate), ranging from 0 to 1. LL shows a clear deficit
+  relative to HH, HL, and LH, whose distributions overlap substantially,
+  consistent with a threshold pattern.}
   \label{fig:ir_cr}
 \end{figure}
 
 Friedman's test revealed a significant main effect:
 \[
   \chi^2(3) = 22.39,\quad p < .001,\quad \text{Kendall's } W = 0.067
-  \quad (\alpha_{\text{FW}} = .0167)
+  \text{ (small)},\quad (\alpha_{\text{FW}} = .0167)
 \]
 Post-hoc Holm-corrected paired Wilcoxon tests (Table~\ref{tab:posthoc_ir})
 show a \textbf{threshold pattern}: LL is significantly below all other
@@ -392,11 +406,14 @@ is sufficient to anchor gist memory; a second provides no further benefit.
   \label{fig:wr_acc}
 \end{figure}
 
-Friedman's test: $\chi^2(3) = 3.34$, $p = .343$, $W = 0.010$ ---
-non-significant at $\alpha_{\text{FW}} = .0167$. WR performance was
-robustly above chance in both voices (one-sample Wilcoxon vs.\ 0.50:
-$V > 6200$, $p < .001$, $r > .83$). Noun imageability does not affect
-syntactic retention.
+Friedman's test: $\chi^2(3) = 3.34$, $p = .343$, $W = 0.010$
+(small) --- non-significant at $\alpha_{\text{FW}} = .0167$. WR
+performance was tested against the chance level of 0.50 (random voice
+guessing) via one-sample Wilcoxon signed-rank test in each voice condition;
+performance was robustly above chance in both voices ($V > 6200$,
+$p < .001$, $r > .83$), confirming that participants' voice judgments
+reflect genuine wording memory, not guessing. Noun imageability does
+not affect syntactic retention.
 
 % ------------------------------------------------------------
 \subsection{Noun Condition $\times$ Voice Interaction (H3 \& H4)}
@@ -429,6 +446,15 @@ Paired Wilcoxon voice tests (collapsed across condition) found no
 significant voice effect on Corrected IR ($V = 1916.5$, $p = .485$,
 $r = .066$) or WR ($V = 3520.5$, $p = .114$, $r = .149$).
 
+Sensitivity Friedman tests per voice level (robustness check for SRH
+independence assumption): within Active voice, Corrected IR showed a
+significant noun condition effect ($\chi^2(3) = 14.92$, $p = .002$,
+$W = 0.045$, small); within Passive voice, the effect was likewise
+significant ($\chi^2(3) = 13.67$, $p = .003$, $W = 0.041$, small).
+These per-voice results confirm that the LL deficit is not confined to
+one voice condition and that the SRH main effect is not an artefact of
+the independence approximation.
+
 % ------------------------------------------------------------
 \subsection{IR Reaction Time}
 \label{sec:rt}
@@ -444,43 +470,27 @@ $r = .066$) or WR ($V = 3520.5$, $p = .114$, $r = .149$).
     \includegraphics[width=\textwidth]{plots/06_qq_ir_cr.png}
     \caption{Q-Q Plot: Corrected IR}
   \end{subfigure}
-  \caption{RT distributions (left) and normality validation for
-  Corrected IR (right).}
+  \caption{RT distributions (left) and Q-Q plot for Corrected IR (right).
+  In the Q-Q plot, deviations from the diagonal at the tails indicate
+  non-normality (bounded proportions with excess skew); this confirms
+  the decision to use non-parametric Friedman tests rather than
+  parametric ANOVA for Corrected IR. HC3 robust SEs in the GLM further
+  address the heteroscedasticity implied by these tails.}
   \label{fig:rt_qq}
 \end{figure}
 
 Friedman's test on IR RT: $\chi^2(3) = 16.53$, $p < .001$,
-$W = 0.049$, significant at $\alpha_{\text{FW}} = .0167$.
+$W = 0.049$ (small), significant at $\alpha_{\text{FW}} = .0167$.
 Post-hoc (Holm): LH vs.\ LL was the only significant pair
 ($p < .001$, $r = .387$). Passive LL sentences were slowest
 ($M = 1808$~ms vs.\ Active HL at $1664$~ms), consistent with greater
 processing difficulty when both nouns are low-imageability.
 
-% ============================================================
-\section{Signal Detection Theory Analysis}
-% ============================================================
 
-\subsection{Rationale}
+% ------------------------------------------------------------
+\subsection{SDT Results}
 
-As established in Section~\ref{sec:sdt_lit}, Corrected IR conflates
-sensitivity and response criterion \citep{green1966,macmillan2005}.
-SDT allows us to test whether the LL deficit reflects reduced
-discriminability ($d'$ lower), a conservative criterion shift ($c$ higher),
-or both. This distinction has direct theoretical implications: a pure
-criterion shift would suggest that LL sentences generate \emph{some}
-memory trace but participants distrust it, whereas a sensitivity
-reduction indicates a genuinely weaker imaginal representation.
-
-SDT parameters were computed per participant per noun condition using
-log-linear correction (adding 0.5 to counts, 1 to denominators) to
-prevent infinite z-values \citep{macmillan2005}.
-
-\textbf{Caveat:} All HF lures are active-voice; a global FA rate
-is therefore used for both voice conditions, which may marginally inflate
-$d'$ for passive sentences. Voice SDT comparisons are interpreted with
-this limitation in mind.
-
-\subsection{Descriptive SDT Statistics}
+\subsubsection{Descriptive SDT Statistics}
 
 \begin{table}[htbp]
   \centering\small
@@ -503,7 +513,7 @@ this limitation in mind.
   \label{tab:sdt_desc}
 \end{table}
 
-\subsection{Inferential Tests on $d'$ and $A'$}
+\subsubsection{Inferential Tests on $d'$ and $A'$}
 
 Shapiro-Wilk per group confirmed normality of $d'$ ($p > .09$ all groups),
 justifying RM-ANOVA. $A'$ is bounded and uses Friedman's.
@@ -520,13 +530,13 @@ HL ($p < .001$, $d = 0.43$), LH ($p = .010$, $d = 0.29$); HH vs.\ HL
 pattern confirmed.
 
 \textbf{Friedman's on $A'$}: $\chi^2(3) = 23.50$, $p < .001$,
-$W = 0.070$. Post-hoc Holm: LL < HH ($r = .360$), HL ($r = .415$),
+$W = 0.070$ (small). Post-hoc Holm: LL < HH ($r = .360$), HL ($r = .415$),
 LH ($r = .256$); HH--HL, HH--LH non-significant ($p > .50$).
 The $A'$ result, which makes no equal-variance assumption
 \citep{snodgrass1988}, replicates the $d'$ pattern, confirming it is
 not an artefact of the SDT model's distributional assumptions.
 
-\subsection{Criterion ($c$) Analysis}
+\subsubsection{Criterion ($c$) Analysis}
 
 RM-ANOVA on $c$: $F(3, 333) = 8.47$, $p < .001$. The LL condition
 shows the most positive $c$ ($M = 0.107$ vs.\
@@ -537,7 +547,7 @@ reduction ($d'$ is also lowest for LL), suggesting the LL deficit
 comprises both a weaker imaginal trace \emph{and} a compensatory
 metacognitive adjustment in decision threshold.
 
-\subsection{Convergent Validity}
+\subsubsection{Convergent Validity}
 
 \begin{table}[htbp]
   \centering\small
@@ -577,22 +587,10 @@ metacognitive adjustment in decision threshold.
   \label{fig:sdt}
 \end{figure}
 
-% ============================================================
-\section{Generalized Linear Model Analysis}
-% ============================================================
+% ------------------------------------------------------------
+\subsection{GLM Results}
 
-\subsection{Rationale and Model Selection}
-
-GLMs were fit at cell level (one row per participant $\times$ noun
-condition $\times$ voice; $N = 890$ after listwise exclusion of 6 rows
-with no WR trials). Reference levels: noun condition = LL, voice =
-Active. Backward AIC stepwise elimination from a full model including
-main effects and the noun condition $\times$ voice interaction.
-Breusch-Pagan tests indicated heteroscedasticity for both outcomes
-(IR: $p = .040$; WR: $p = .002$); \textbf{HC3 robust standard errors}
-were applied throughout. No Cook's D exceeded 1.
-
-\subsection{Corrected IR: Best Model}
+\subsubsection{Corrected IR: Best Model}
 
 Backward AIC retained:
 $\text{Corrected IR} \sim \text{noun\_condition} + \text{mean\_trial\_position}$
@@ -626,18 +624,39 @@ The near-equal $\hat{\beta}$ values for LH (0.049), HL (0.053), and HH
 regression framework. Bayesian comparison: BF$_{10} = 10.76$ --- positive
 evidence for noun condition predicting Corrected IR.
 
-\subsection{WR Accuracy: Best Model}
+\subsubsection{WR Accuracy: Best Model}
 
 Backward AIC retained: $\text{WR Accuracy} \sim \text{voice} +
-\text{mean\_trial\_position}$
+\text{mean\_trial\_position}$, with noun condition eliminated from the
+model (AIC penalised its inclusion as it provided no fit improvement).
 \[
   F(2, 887) = 4.24,\quad p = .015,\quad R^2 = 0.010
 \]
+
+\begin{table}[htbp]
+  \centering\small
+  \begin{tabular}{lccccc}
+    \toprule
+    \textbf{Term} & $\boldsymbol{\hat{\beta}}$ & \textbf{Robust SE} &
+    $\boldsymbol{t}$ & $\boldsymbol{p}$ & \textbf{95\% CI} \\
+    \midrule
+    Intercept      & 0.752 & 0.017 & 43.93 & $<.001$ & [0.718, 0.786] \\
+    Voice: Passive & 0.019 & 0.011 &  1.75 & .081    & [$-$0.003, 0.041] \\
+    Trial position & 0.011 & 0.004 &  2.57 & .010    & [0.003, 0.019] \\
+    \bottomrule
+  \end{tabular}
+  \caption{HC3 coefficient estimates for best WR Accuracy GLM.
+  Noun condition was eliminated by backward AIC.
+  Bayesian comparison: BF$_{01} = 1027$ (very strong evidence against
+  noun condition as a predictor of WR).}
+  \label{tab:glm_wr}
+\end{table}
+
 \textbf{Noun condition was dropped} by AIC. Bayesian comparison for
 noun condition: BF$_{10} = 0.001$ (BF$_{01} = 1027$) --- very strong
 evidence noun condition does not predict WR.
 
-\subsection{Interaction Tests (H4)}
+\subsubsection{Interaction Tests (H4)}
 
 Wald $F$-tests (HC3) confirmed no noun condition $\times$ voice interaction:
 \begin{itemize}[noitemsep]
@@ -647,7 +666,7 @@ Wald $F$-tests (HC3) confirmed no noun condition $\times$ voice interaction:
   BF$_{01} = 35$
 \end{itemize}
 
-\subsection{GLM Diagnostics}
+\subsubsection{GLM Diagnostics}
 
 \begin{figure}[htbp]
   \centering
@@ -666,32 +685,14 @@ Wald $F$-tests (HC3) confirmed no noun condition $\times$ voice interaction:
   \label{fig:glm_diag}
 \end{figure}
 
-% ============================================================
-\section{Block Learning Analysis}
-% ============================================================
+% ------------------------------------------------------------
+\subsection{Block-Learning Results (Control Analysis)}
 
-\subsection{Rationale and Practice Block Exclusion}
-
-The block learning analysis asks whether gist recognition changes across
-the three experimental blocks and whether the LL deficit is stable or
-attenuates with repeated exposure. The practice block was excluded for
-two reasons. First, its sentences are not from the experimental stimulus
-set and do not re-appear in subsequent blocks, so their retention is
-irrelevant to the study's questions. Second, and more importantly,
-practice block performance reflects the rate at which individual
-participants adapt to a novel test environment --- learning how to press
-the right buttons, calibrating to the display pace, and building
-confidence in the response paradigm. This adaptation rate is a property
-of the participant's interaction with the interface, not of noun
-imageability processing. Including it would contaminate the Block 1
-baseline with individual-level task-familiarisation noise, obscuring any
-genuine learning effects driven by cumulative semantic exposure.
-
-\subsection{Block Main Effect}
+\subsubsection{Block Main Effect}
 
 Friedman's test (collapsed across noun condition) on Corrected IR:
 \[
-  \chi^2(2) = 23.30,\quad p < .001,\quad W = 0.111
+  \chi^2(2) = 23.30,\quad p < .001,\quad W = 0.111 \text{ (small)}
 \]
 Post-hoc Holm Wilcoxon: Block 1 < Block 2 ($p < .001$, $r = .351$)
 and Block 3 ($p < .001$, $r = .449$). Block 2 vs.\ 3 non-significant
@@ -716,7 +717,7 @@ after the first experimental block. No block effect on WR Accuracy
   \label{fig:block}
 \end{figure}
 
-\subsection{Noun Condition Effect Within Each Block}
+\subsubsection{Noun Condition Effect Within Each Block}
 
 \begin{table}[htbp]
   \centering\small
@@ -725,9 +726,9 @@ after the first experimental block. No block effect on WR Accuracy
     \textbf{Block} & $\boldsymbol{\chi^2(3)}$ & $\boldsymbol{p}$ &
     \textbf{Kendall's $W$} & \textbf{Significant ($\alpha_{\text{FW}}$)?} \\
     \midrule
-    Block 1 & 29.0 & $<.001$ & 0.092 & Yes \\
-    Block 2 & 8.06 & .045    & 0.026 & No ($p > .0167$)$^*$ \\
-    Block 3 & 11.0 & .012    & 0.035 & Yes \\
+    Block 1 & 29.0 & $<.001$ & 0.092 (small) & Yes \\
+    Block 2 & 8.06 & .045    & 0.026 (small) & No ($p > .0167$)$^*$ \\
+    Block 3 & 11.0 & .012    & 0.035 (small) & Yes \\
     \bottomrule
   \end{tabular}
   \caption{Per-block Friedman tests for noun condition effect on
@@ -736,7 +737,7 @@ after the first experimental block. No block effect on WR Accuracy
   \label{tab:block_omnibus}
 \end{table}
 
-\subsection{Condition $\times$ Block Interaction}
+\subsubsection{Condition $\times$ Block Interaction}
 
 SRH: noun condition $H = 17.78$, $p < .001$; block $H = 51.39$,
 $p < .001$; \textbf{interaction $H = 6.43$, $p = .377$}. The LL deficit
@@ -797,10 +798,15 @@ while recognition requires only that a trace reaches decision threshold
 \begin{itemize}[noitemsep]
   \item \textbf{Sample size:} $N = 112$ is below the pre-registered
   target of 334; the study is underpowered for small WR and voice effects.
+  At $N = 112$ and $\alpha = .017$, the design has $\approx$80\% power
+  to detect Friedman effects of $W \geq 0.10$ (medium), but $\leq$50\%
+  power for effects of $W < 0.05$ (small-to-negligible).
   \item \textbf{One-sided lures:} All HF lures are active-voice; passive
   $d'$ may be marginally inflated.
   \item \textbf{SRH approximation:} SRH was designed for independent
   groups; its use in a within-participants design is an approximation.
+  Per-voice sensitivity Friedman tests (reported in §\ref{sec:rt})
+  confirm the main finding holds within each voice level.
   \item \textbf{Future:} Reach target $N$; include passive-voice lures;
   apply Beta regression or trial-level logistic mixed-effects models;
   explore EEG correlates (N400) of the imageability effect.
@@ -813,7 +819,7 @@ while recognition requires only that a trace reaches decision threshold
 \begin{itemize}[noitemsep]
   \item \textbf{Shreyas Deb:} End-to-end R pipeline, log parsing, FA
   rate correction, score computation, visualisations, block learning
-  analysis, \LaTeX{} compilation.
+  analysis.
   \item \textbf{Yajat Lakhanpal:} GLM pipeline (AIC selection, HC3 SEs,
   Bayesian model comparison), core non-parametric framework (Friedman,
   Wilcoxon, SRH, effect sizes).
